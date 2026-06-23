@@ -1,5 +1,7 @@
 import {
   isIosDevice,
+  isAndroidDevice,
+  isMobileDevice,
   openAppInBrowser,
 } from "@/lib/html-payload";
 import { isTelegramWebView } from "@/lib/telegram-env";
@@ -31,6 +33,16 @@ body{
   html{height:-webkit-fill-available}
   body{
     min-height:-webkit-fill-available!important;
+    height:auto!important;
+    display:block!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important
+  }
+}
+@media (hover:none) and (pointer:coarse){
+  html{height:auto}
+  body{
+    min-height:100dvh!important;
     height:auto!important;
     display:block!important;
     align-items:stretch!important;
@@ -76,11 +88,14 @@ img,svg,video{max-width:100%;height:auto}
 }
 </style>`;
 
-/** Доп. init для iOS standalone: скролл, оверлеи, клики. */
+/** Init для standalone/PWA: скролл, оверлеи, Android + iOS. */
 const VIBE_STANDALONE_BOOT = `<script id="vibe-standalone-boot">
 (function(){
   var standalone=window.navigator.standalone===true||window.matchMedia("(display-mode: standalone)").matches;
-  var ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+  var ua=navigator.userAgent;
+  var ios=/iPhone|iPad|iPod/i.test(ua);
+  var android=/Android/i.test(ua);
+  var mobile=ios||android;
   function stripOverlays(){
     ["vibe-homescreen-guide","vibe-ios-hint","vibe-save-hint"].forEach(function(id){
       var el=document.getElementById(id);if(el)el.remove();
@@ -91,6 +106,7 @@ const VIBE_STANDALONE_BOOT = `<script id="vibe-standalone-boot">
     var sel=".list,.items,.timeline,.bars,.legend,.colWant,.colWatch,.colDone,.weekAll,.events,.show-list,.med-list";
     document.querySelectorAll(sel).forEach(function(el){
       el.style.webkitOverflowScrolling="touch";
+      el.style.overflowScrolling="touch";
       var cs=getComputedStyle(el);
       if((cs.overflowY==="auto"||cs.overflowY==="scroll"||cs.maxHeight!=="none")&&el.scrollHeight>el.clientHeight+2){
         el.style.overflowY="auto";
@@ -99,11 +115,11 @@ const VIBE_STANDALONE_BOOT = `<script id="vibe-standalone-boot">
     });
   }
   function boot(){
-    if(standalone||ios)stripOverlays();
+    if(standalone)stripOverlays();
     fixScrollRegions();
-    if(ios){
+    if(mobile){
       document.documentElement.style.height="auto";
-      document.body.style.minHeight="-webkit-fill-available";
+      document.body.style.minHeight=ios?"-webkit-fill-available":"100dvh";
     }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
@@ -112,7 +128,31 @@ const VIBE_STANDALONE_BOOT = `<script id="vibe-standalone-boot">
 })();
 </script>`;
 
-/** Ранний init: iOS file:// + поздний DOMContentLoaded + localStorage. */
+const PWA_ICON =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%237c3aed' width='100' height='100' rx='22'/%3E%3Ctext y='.9em' x='50%25' text-anchor='middle' font-size='52'%3E✨%3C/text%3E%3C/svg%3E";
+
+const ANDROID_PWA_META = `<meta name="theme-color" content="#7c3aed">
+<link rel="manifest" href="data:application/manifest+json,${encodeURIComponent(
+  JSON.stringify({
+    name: "Моё приложение",
+    short_name: "Приложение",
+    display: "standalone",
+    start_url: ".",
+    scope: ".",
+    background_color: "#0b0b12",
+    theme_color: "#7c3aed",
+    icons: [
+      {
+        src: PWA_ICON,
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any maskable",
+      },
+    ],
+  }),
+)}">`;
+
+/** Ранний init: file:// + поздний DOMContentLoaded + localStorage. */
 const VIBE_HEAD_INIT = `<script id="vibe-head-init">
 (function(){
   var add=document.addEventListener.bind(document);
@@ -224,9 +264,13 @@ function injectMobileMeta(html: string): string {
       `<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%237c3aed' width='100' height='100' rx='22'/%3E%3Ctext y='.9em' x='50%25' text-anchor='middle' font-size='52'%3E✨%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="${PWA_ICON}">
 </head>`,
     );
+  }
+
+  if (!result.includes('name="theme-color"')) {
+    result = result.replace(/<\/head>/i, `${ANDROID_PWA_META}\n</head>`);
   }
 
   if (result.includes("vibe-mobile-fix")) {
@@ -331,7 +375,9 @@ export async function saveHtmlToDevice(
           title: title || "Моё приложение",
           text: isIos()
             ? "Файл — только просмотр в Safari. Иконку на экран добавьте кнопкой «Иконка на экране»."
-            : undefined,
+            : isAndroidDevice()
+              ? "Файл HTML. Для иконки на главном экране используйте «Иконка на экране»."
+              : undefined,
         });
         return "shared";
       }
@@ -342,8 +388,8 @@ export async function saveHtmlToDevice(
     }
   }
 
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile || isIosDevice()) {
+  const isMobile = isMobileDevice();
+  if (isMobile) {
     const opened = await openAppInBrowser(html);
     if (opened) return "opened";
     openHtmlInNewTab(html, { includeSaveBar: true });
@@ -365,7 +411,7 @@ export function openHtmlInNewTab(
   opts?: { includeSaveBar?: boolean },
 ): void {
   void (async () => {
-    if (isIosDevice() || isTelegramWebView()) {
+    if (isMobileDevice() || isTelegramWebView()) {
       const withBar = opts?.includeSaveBar;
       const target = withBar ? injectMobileSaveBar(html) : html;
       const opened = await openAppInBrowser(target);

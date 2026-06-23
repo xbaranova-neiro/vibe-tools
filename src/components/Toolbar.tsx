@@ -6,7 +6,7 @@ import { HomeScreenGuide } from "@/components/HomeScreenGuide";
 import {
   openForHomeScreen,
   openAppInBrowser,
-  isIosDevice,
+  canInstallToHomeScreen,
   type HomeScreenResult,
 } from "@/lib/html-payload";
 import { saveHtmlToDevice } from "@/lib/prepare-html-for-preview";
@@ -29,7 +29,7 @@ export function Toolbar({
   const [saving, setSaving] = useState(false);
   const [homeBusy, setHomeBusy] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
-  const isIos = isIosDevice();
+  const canInstall = canInstallToHomeScreen();
 
   const openApp = () => {
     if (!html) return;
@@ -77,7 +77,7 @@ export function Toolbar({
         busy={homeBusy}
       />
       <div className="flex flex-wrap items-center gap-2">
-        {isIos && (
+        {canInstall && (
           <button
             type="button"
             onClick={() => setGuideOpen(true)}

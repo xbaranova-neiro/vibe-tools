@@ -6,7 +6,7 @@ import { HomeScreenGuide } from "@/components/HomeScreenGuide";
 import {
   openForHomeScreen,
   openAppInBrowser,
-  isIosDevice,
+  canInstallToHomeScreen,
   type HomeScreenResult,
 } from "@/lib/html-payload";
 import { saveHtmlToDevice } from "@/lib/prepare-html-for-preview";
@@ -26,7 +26,7 @@ export function MobileSaveActions({
 }: MobileSaveActionsProps) {
   const [busy, setBusy] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
-  const isIos = isIosDevice();
+  const canInstall = canInstallToHomeScreen();
 
   const launchHomeScreen = async () => {
     setBusy(true);
@@ -75,7 +75,7 @@ export function MobileSaveActions({
         busy={busy}
       />
 
-      {isIos ? (
+      {canInstall ? (
         <div className="flex flex-col gap-2">
           <button
             type="button"

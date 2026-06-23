@@ -1,14 +1,10 @@
 import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
+import { isIosDevice } from "@/lib/device";
 import { isTelegramWebView, openInExternalBrowser } from "@/lib/telegram-env";
 
-export const MAX_PAYLOAD_LEN = 120_000;
+export { isIosDevice, isAndroidDevice, isMobileDevice, getMobilePlatform, canInstallToHomeScreen } from "@/lib/device";
 
-export function isIosDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  if (/iPhone|iPad|iPod/i.test(ua)) return true;
-  return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-}
+export const MAX_PAYLOAD_LEN = 120_000;
 
 function base64urlEncode(bytes: Uint8Array): string {
   let binary = "";

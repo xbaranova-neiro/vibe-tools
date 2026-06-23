@@ -1,7 +1,7 @@
 "use client";
 
 import { MobileSaveActions } from "@/components/MobileSaveActions";
-import { isIosDevice } from "@/lib/html-payload";
+import { isMobileDevice } from "@/lib/html-payload";
 import { useIframeHtml } from "@/lib/use-iframe-html";
 
 type PreviewFrameProps = {
@@ -24,7 +24,7 @@ export function PreviewFrame({
   isTelegram = false,
   onOpenFullscreen,
 }: PreviewFrameProps) {
-  const isIos = isIosDevice();
+  const isMobile = isMobileDevice();
   const iframeRef = useIframeHtml({
     html: loading ? null : html,
     revision,
@@ -43,7 +43,7 @@ export function PreviewFrame({
           />
         </div>
       )}
-      {!isTelegram && !isIos && (
+      {!isTelegram && isMobile && (
         <p className="hidden px-1 text-center text-[11px] text-white/45 sm:block lg:hidden">
           Кнопки сохранения — внизу экрана
         </p>

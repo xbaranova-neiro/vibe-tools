@@ -15,7 +15,7 @@ import {
   waitForTheater,
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
-import { isIosDevice } from "@/lib/html-payload";
+import { canInstallToHomeScreen, getMobilePlatform } from "@/lib/html-payload";
 import { applyThemeToHtml } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -425,11 +425,13 @@ export function VibeStudio() {
             )}
           </div>
           <p className="mt-1 hidden text-sm text-white/50 sm:block">
-            {isIosDevice()
-              ? "«Иконка на экране» — как приложение · «Файл» — только в Safari"
+            {canInstallToHomeScreen()
+              ? getMobilePlatform() === "android"
+                ? "«Иконка на экране» — как приложение · «Сохранить» — файл HTML"
+                : "«Иконка на экране» — как приложение · «Файл» — только в Safari"
               : isTelegram
                 ? "«В чате» — превью · «Safari» — сохранить"
-                : "Сохраните HTML в Файлы — откроется офлайн"}
+                : "Сохраните HTML — откроется офлайн"}
           </p>
         </div>
         <div className="hidden shrink-0 lg:block">

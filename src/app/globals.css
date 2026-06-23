@@ -23,7 +23,11 @@ html {
   overflow-x: hidden;
 }
 
-/* Высота viewport на iOS Safari */
+/* Высота viewport на мобильных (iOS + Android) */
+.min-h-screen-safe {
+  min-height: 100dvh;
+}
+
 @supports (-webkit-touch-callout: none) {
   .min-h-screen-safe {
     min-height: -webkit-fill-available;
