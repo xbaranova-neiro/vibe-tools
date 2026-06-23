@@ -24,7 +24,9 @@ npm run dev
 
 ## Деплой на Timeweb (рекомендуется)
 
-1. Код в GitHub: `xbaranova-neiro/vibe-tools`, ветка `main`.
+**Подробная инструкция с решением ошибок:** [TIMEWEB.md](./TIMEWEB.md)
+
+Кратко:
 2. [Timeweb Cloud](https://timeweb.cloud/my) → **App Platform** → **Создать** → **Next.js**.
 3. Подключить репозиторий, ветка `main`.
 4. **Включить SSR** (обязательно — иначе `/api/generate` не заработает).
