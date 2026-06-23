@@ -2,25 +2,39 @@
 
 import { useEffect, useState } from "react";
 
-import { decodeHtmlPayload } from "@/lib/html-payload";
-import { IFRAME_SANDBOX } from "@/lib/telegram-env";
+import { decodeHtmlPayload, isIosDevice } from "@/lib/html-payload";
+import { installHtmlDocument } from "@/lib/install-html-document";
 
-export default function StandaloneAppClient() {
-  const [html, setHtml] = useState<string | null>(null);
+type StandaloneAppClientProps = {
+  pathPayload?: string;
+};
+
+export default function StandaloneAppClient({
+  pathPayload,
+}: StandaloneAppClientProps) {
   const [error, setError] = useState<string | null>(null);
-  const [hintOpen, setHintOpen] = useState(true);
+  const [html, setHtml] = useState<string | null>(null);
+  const [hintOpen, setHintOpen] = useState(() => isIosDevice());
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const hash = window.location.hash.slice(1);
-      if (!hash) {
-        setError("Приложение не найдено. Создайте его на главной странице Vibe Tools.");
+      const fromPath = pathPayload ? decodeURIComponent(pathPayload) : "";
+      const fromHash = window.location.hash.slice(1);
+      const raw = fromPath || fromHash;
+
+      if (!raw) {
+        setError(
+          "Приложение не найдено. Создайте его на главной странице Vibe Tools.",
+        );
         return;
       }
 
-      const decoded = await decodeHtmlPayload(hash);
+      const decoded = await decodeHtmlPayload(raw);
       if (!decoded) {
-        setError("Не удалось загрузить приложение. Ссылка повреждена или слишком длинная.");
+        setError(
+          "Не удалось загрузить приложение. Ссылка повреждена или слишком длинная.",
+        );
         return;
       }
 
@@ -28,7 +42,19 @@ export default function StandaloneAppClient() {
     };
 
     void load();
-  }, []);
+  }, [pathPayload]);
+
+  useEffect(() => {
+    if (!html || ready) return;
+    if (hintOpen) return;
+
+    try {
+      installHtmlDocument(html);
+      setReady(true);
+    } catch {
+      setError("Ошибка отображения приложения");
+    }
+  }, [html, hintOpen, ready]);
 
   if (error) {
     return (
@@ -53,37 +79,40 @@ export default function StandaloneAppClient() {
     );
   }
 
-  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  return (
-    <div className="fixed inset-0 flex flex-col bg-white">
-      {hintOpen && isIos && (
-        <div className="absolute inset-x-3 top-[max(12px,env(safe-area-inset-top))] z-50 rounded-2xl border border-violet-400/30 bg-[#0d0d18]/95 p-4 text-white shadow-2xl backdrop-blur-md">
-          <p className="text-sm font-semibold text-violet-100">📱 На экран «Домой»</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs leading-relaxed text-white/75">
-            <li>Нажмите кнопку «Поделиться» внизу Safari (квадрат со стрелкой)</li>
+  if (hintOpen) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#07070f] p-6 text-white">
+        <div className="w-full max-w-sm rounded-2xl border border-violet-400/30 bg-[#0d0d18] p-5 shadow-2xl">
+          <p className="text-base font-semibold text-violet-100">
+            📱 Добавить на экран «Домой»
+          </p>
+          <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm leading-relaxed text-white/75">
+            <li>Нажмите «Поделиться» внизу Safari (□ со стрелкой вверх)</li>
             <li>Выберите «На экран «Домой»»</li>
             <li>Нажмите «Добавить»</li>
           </ol>
-          <p className="mt-2 text-[11px] text-white/50">
-            Так работает только с этой страницей в Safari, не с файлом из «Файлов».
+          <p className="mt-3 text-xs text-white/45">
+            Сначала добавьте ярлык — потом откроется приложение
           </p>
           <button
             type="button"
             onClick={() => setHintOpen(false)}
-            className="mt-3 w-full rounded-xl bg-violet-500 py-2.5 text-sm font-semibold"
+            className="mt-4 w-full rounded-xl bg-violet-500 py-3 text-sm font-semibold"
           >
-            Понятно, пользоваться
+            Понятно, открыть приложение
           </button>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <iframe
-        title="Приложение"
-        srcDoc={html}
-        sandbox={IFRAME_SANDBOX}
-        className="h-full w-full flex-1 border-0"
-      />
-    </div>
-  );
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#07070f]">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
+      </div>
+    );
+  }
+
+  return null;
 }

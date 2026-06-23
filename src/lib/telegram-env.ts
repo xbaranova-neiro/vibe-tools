@@ -39,13 +39,13 @@ export function initTelegramWebApp(): boolean {
   return true;
 }
 
-/** Открыть текущий сайт во внешнем Safari/Chrome — там сохранение и превью работают. */
+/** Открыть во внешнем Safari/Chrome. Hash (#) Telegram часто обрезает — передавайте path-URL. */
 export function openInExternalBrowser(url?: string): void {
   const target = url || window.location.href;
   const tg = window.Telegram?.WebApp;
 
   if (tg?.openLink) {
-    tg.openLink(target);
+    tg.openLink(target, { try_instant_view: false });
     return;
   }
 

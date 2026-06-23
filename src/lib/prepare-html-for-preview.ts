@@ -1,3 +1,9 @@
+import {
+  isIosDevice,
+  openAppInBrowser,
+} from "@/lib/html-payload";
+import { isTelegramWebView } from "@/lib/telegram-env";
+
 const MOBILE_FIX_STYLE = `<style id="vibe-mobile-fix">
 button,.btn-add,.btn,.btn-reset,input[type="button"],input[type="submit"]{
   min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer
@@ -192,7 +198,9 @@ export async function saveHtmlToDevice(
   }
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) {
+  if (isMobile || isIosDevice()) {
+    const opened = await openAppInBrowser(html);
+    if (opened) return "opened";
     openHtmlInNewTab(html, { includeSaveBar: true });
     return "opened";
   }
@@ -211,14 +219,23 @@ export function openHtmlInNewTab(
   html: string,
   opts?: { includeSaveBar?: boolean },
 ): void {
-  const prepared = opts?.includeSaveBar
-    ? injectMobileSaveBar(html)
-    : prepareHtmlForExport(html);
-  const blob = new Blob([prepared], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const w = window.open(url, "_blank", "noopener,noreferrer");
-  if (!w) {
-    window.location.assign(url);
-  }
-  window.setTimeout(() => URL.revokeObjectURL(url), 120_000);
+  void (async () => {
+    if (isIosDevice() || isTelegramWebView()) {
+      const withBar = opts?.includeSaveBar;
+      const target = withBar ? injectMobileSaveBar(html) : html;
+      const opened = await openAppInBrowser(target);
+      if (opened) return;
+    }
+
+    const prepared = opts?.includeSaveBar
+      ? injectMobileSaveBar(html)
+      : prepareHtmlForExport(html);
+    const blob = new Blob([prepared], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if (!w) {
+      window.location.assign(url);
+    }
+    window.setTimeout(() => URL.revokeObjectURL(url), 120_000);
+  })();
 }

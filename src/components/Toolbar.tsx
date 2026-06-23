@@ -4,13 +4,11 @@ import { useState } from "react";
 
 import {
   openForHomeScreen,
+  openAppInBrowser,
   isIosDevice,
   type HomeScreenResult,
 } from "@/lib/html-payload";
-import {
-  openHtmlInNewTab,
-  saveHtmlToDevice,
-} from "@/lib/prepare-html-for-preview";
+import { saveHtmlToDevice } from "@/lib/prepare-html-for-preview";
 
 type ToolbarProps = {
   html: string | null;
@@ -27,7 +25,6 @@ export function Toolbar({
   onReset,
   isTelegram = false,
   onOpenFullscreen,
-  onOpenExternal,
 }: ToolbarProps) {
   const [saving, setSaving] = useState(false);
   const [homeBusy, setHomeBusy] = useState(false);
@@ -39,13 +36,13 @@ export function Toolbar({
       onOpenFullscreen(html);
       return;
     }
-    openHtmlInNewTab(html, { includeSaveBar: true });
+    void openAppInBrowser(html);
   };
 
   const saveApp = async () => {
     if (!html || saving) return;
     if (isTelegram) {
-      onOpenExternal?.();
+      void openAppInBrowser(html);
       return;
     }
     setSaving(true);
@@ -73,7 +70,7 @@ export function Toolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {isIos && !isTelegram && (
+      {isIos && (
         <button
           type="button"
           onClick={() => void addToHomeScreen()}
@@ -92,9 +89,9 @@ export function Toolbar({
         className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {saving ? "…" : isTelegram ? "🌐 " : "💾 "}
-        <span className="sm:hidden">{isTelegram ? "Браузер" : "Файлы"}</span>
+        <span className="sm:hidden">{isTelegram ? "Safari" : "Файлы"}</span>
         <span className="hidden sm:inline">
-          {isTelegram ? "Открыть в браузере" : "Сохранить в Файлы"}
+          {isTelegram ? "Открыть в Safari" : "Сохранить в Файлы"}
         </span>
       </button>
       <button
@@ -103,7 +100,7 @@ export function Toolbar({
         disabled={!html}
         className="rounded-xl border border-violet-400/40 bg-violet-500/20 px-4 py-2 text-sm font-semibold text-violet-50 transition hover:bg-violet-500/30 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {isTelegram ? "▶ Пользоваться" : "↗ Открыть"}
+        {isTelegram ? "▶ В чате" : "↗ Открыть"}
       </button>
       <button
         type="button"
