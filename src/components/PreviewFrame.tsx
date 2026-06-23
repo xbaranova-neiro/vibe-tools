@@ -1,53 +1,35 @@
 "use client";
 
-import { MobileSaveActions } from "@/components/MobileSaveActions";
-import { isMobileDevice } from "@/lib/html-payload";
 import { useIframeHtml } from "@/lib/use-iframe-html";
 
 type PreviewFrameProps = {
   html: string | null;
   title?: string;
+  appId?: string | null;
   loading?: boolean;
   revision?: number;
   isTelegram?: boolean;
   onOpenFullscreen?: (html: string) => void;
 };
 
-const PREVIEW_BOX =
-  "preview-shell flex w-full flex-col gap-2";
+const PREVIEW_BOX = "preview-shell flex w-full flex-col gap-2";
 
 export function PreviewFrame({
   html,
-  title = "moe-prilozhenie",
   loading,
   revision = 0,
+  appId = null,
   isTelegram = false,
-  onOpenFullscreen,
 }: PreviewFrameProps) {
-  const isMobile = isMobileDevice();
   const iframeRef = useIframeHtml({
     html: loading ? null : html,
     revision,
+    appId,
     telegramMode: isTelegram,
   });
 
   const frameShell = (frame: React.ReactNode) => (
     <div className={PREVIEW_BOX}>
-      {html && (
-        <div className="hidden lg:block">
-          <MobileSaveActions
-            html={html}
-            title={title}
-            isTelegram={isTelegram}
-            onOpenFullscreen={onOpenFullscreen}
-          />
-        </div>
-      )}
-      {!isTelegram && isMobile && (
-        <p className="hidden px-1 text-center text-[11px] text-white/45 sm:block lg:hidden">
-          Кнопки сохранения — внизу экрана
-        </p>
-      )}
       <div className="relative min-h-0 flex-1">{frame}</div>
     </div>
   );

@@ -9,6 +9,7 @@ import { IFRAME_SANDBOX } from "@/lib/telegram-env";
 type UseIframeHtmlOptions = {
   html: string | null;
   revision?: number;
+  appId?: string | null;
   /** Telegram WebView: same-origin /embed, blob и srcdoc не работают. */
   telegramMode?: boolean;
 };
@@ -16,6 +17,7 @@ type UseIframeHtmlOptions = {
 export function useIframeHtml({
   html,
   revision = 0,
+  appId = null,
   telegramMode = false,
 }: UseIframeHtmlOptions) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -26,7 +28,7 @@ export function useIframeHtml({
     if (!iframe || !html) return;
 
     let cancelled = false;
-    const prepared = prepareHtmlForPreview(html);
+    const prepared = prepareHtmlForPreview(html, appId ?? undefined);
 
     const cleanupBlob = () => {
       if (blobUrlRef.current) {
@@ -86,7 +88,7 @@ export function useIframeHtml({
     iframe.srcdoc = prepared;
 
     return cleanupBlob;
-  }, [html, revision, telegramMode]);
+  }, [html, revision, appId, telegramMode]);
 
   return iframeRef;
 }

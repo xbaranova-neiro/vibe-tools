@@ -151,11 +151,18 @@ const VIBE_HEAD_INIT = `<script id="vibe-head-init">
 (function(){
   var add=document.addEventListener.bind(document);
   document.addEventListener=function(type,fn,opts){
-    if(type==="DOMContentLoaded"&&(document.readyState==="interactive"||document.readyState==="complete")){
+    if(type==="DOMContentLoaded"&&document.readyState!=="loading"){
       setTimeout(fn,0);
       return;
     }
     return add(type,fn,opts);
+  };
+  window.vibeBoot=function(fn){
+    if(document.readyState==="loading"){
+      document.addEventListener("DOMContentLoaded",fn,{once:true});
+    }else{
+      fn();
+    }
   };
   var mem={};
   function memStore(){
@@ -321,8 +328,57 @@ export function slugifyFilename(title: string): string {
 }
 
 /** Готовит HTML к превью в iframe. */
-export function prepareHtmlForPreview(html: string): string {
-  return injectHeadInit(injectMobileMeta(html));
+export function prepareHtmlForPreview(html: string, appId?: string): string {
+  let result = injectHeadInit(injectMobileMeta(html));
+  if (appId) {
+    result = injectAppStorageScope(result, appId);
+  }
+  return result;
+}
+
+function injectAppStorageScope(html: string, appId: string): string {
+  const scope = `<script id="vibe-app-scope">
+(function(){
+  var id=${JSON.stringify(appId)};
+  var prefix="vibe-app-"+id+"-";
+  var store=window.localStorage;
+  var wrap={
+    getItem:function(k){return store.getItem(prefix+k)},
+    setItem:function(k,v){store.setItem(prefix+k,String(v))},
+    removeItem:function(k){store.removeItem(prefix+k)},
+    clear:function(){
+      for(var i=store.length-1;i>=0;i--){
+        var key=store.key(i);
+        if(key&&key.indexOf(prefix)===0)store.removeItem(key);
+      }
+    },
+    key:function(i){
+      var keys=[];
+      for(var j=0;j<store.length;j++){
+        var k=store.key(j);
+        if(k&&k.indexOf(prefix)===0)keys.push(k.slice(prefix.length));
+      }
+      return keys[i]||null;
+    },
+    get length(){
+      var n=0;
+      for(var j=0;j<store.length;j++){
+        var k=store.key(j);
+        if(k&&k.indexOf(prefix)===0)n++;
+      }
+      return n;
+    }
+  };
+  try{window.localStorage=wrap}catch(e){}
+})();
+</script>`;
+  if (html.includes('id="vibe-head-init"')) {
+    return html.replace(
+      /<script id="vibe-head-init">[\s\S]*?<\/script>/i,
+      (m) => `${m}\n${scope}`,
+    );
+  }
+  return html.replace(/<head([^>]*)>/i, `<head$1>\n${scope}`);
 }
 
 /** Готовит HTML для сохранения в «Файлы» (iOS file://). */

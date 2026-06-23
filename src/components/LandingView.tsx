@@ -1,12 +1,13 @@
 "use client";
 
+import { MyAppsSection } from "@/components/MyAppsSection";
 import { TemplateCards } from "@/components/TemplateCards";
 import type { Template } from "@/lib/templates";
 
 const STEPS = [
   { n: "1", title: "Выбери шаблон", desc: "или опиши идею" },
   { n: "2", title: "Смотри генерацию", desc: "код на глазах" },
-  { n: "3", title: "Пользуйся", desc: "сразу в превью" },
+  { n: "3", title: "Пользуйся", desc: "в «Мои приложения»" },
 ];
 
 type LandingViewProps = {
@@ -14,10 +15,12 @@ type LandingViewProps = {
   onPromptChange: (value: string) => void;
   onCreate: () => void;
   onTemplate: (template: Template) => void;
+  onOpenApp: (id: string) => void;
+  onDeleteApp: (id: string) => void;
+  libraryRefreshKey?: number;
   selectedId?: string | null;
   error?: string | null;
   isTelegram?: boolean;
-  onOpenExternal?: () => void;
 };
 
 export function LandingView({
@@ -25,32 +28,23 @@ export function LandingView({
   onPromptChange,
   onCreate,
   onTemplate,
+  onOpenApp,
+  onDeleteApp,
+  libraryRefreshKey = 0,
   selectedId,
   error,
   isTelegram = false,
-  onOpenExternal,
 }: LandingViewProps) {
   return (
     <div className="landing-page safe-x mx-auto w-full max-w-5xl px-3 pb-20 pt-4 sm:px-6 sm:pb-16 sm:pt-8">
       {isTelegram && (
-        <div className="landing-fade mb-5 flex flex-col gap-3 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3.5 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-violet-100">
-              Вы в Telegram — шаблоны работают здесь
-            </p>
-            <p className="mt-0.5 text-xs text-violet-200/70">
-              Для «На экран Домой» — откройте в Safari
-            </p>
-          </div>
-          {onOpenExternal && (
-            <button
-              type="button"
-              onClick={onOpenExternal}
-              className="touch-target shrink-0 rounded-xl bg-violet-500 px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              🌐 Safari
-            </button>
-          )}
+        <div className="landing-fade mb-5 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3.5 sm:mb-6">
+          <p className="text-sm font-medium text-violet-100">
+            Вы в Telegram — шаблоны и ваши приложения работают здесь
+          </p>
+          <p className="mt-0.5 text-xs text-violet-200/70">
+            Всё сохраняется в этом чате на вашем устройстве
+          </p>
         </div>
       )}
 
@@ -86,7 +80,7 @@ export function LandingView({
             памятью в браузере.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-1.5 sm:mt-6 sm:gap-2 lg:justify-start">
-            {["7 шаблонов", "HTML за секунды", "можно скачать"].map((tag) => (
+            {["7 шаблонов", "HTML за секунды", "всё в браузере"].map((tag) => (
               <span
                 key={tag}
                 className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/45 sm:px-3 sm:text-xs"
@@ -155,6 +149,12 @@ export function LandingView({
           </div>
         ))}
       </section>
+
+      <MyAppsSection
+        refreshKey={libraryRefreshKey}
+        onOpen={onOpenApp}
+        onDelete={onDeleteApp}
+      />
 
       <section className="landing-fade landing-fade-delay-3 mb-8 sm:mb-10">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4">

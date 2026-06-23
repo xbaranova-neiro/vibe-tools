@@ -33,14 +33,14 @@ h1{text-align:center;font-size:1.5rem;margin-bottom:4px}
 input,select{padding:11px;border-radius:12px;border:none;font-size:.95rem}
 input{flex:1;min-width:100px}
 select{background:#fff}
-.btn{width:100%;padding:12px;background:#2dd4bf;color:#134e4a;border:none;border-radius:12px;font-weight:700;cursor:pointer}
+.btn,.btn-add{width:100%;padding:12px;background:#2dd4bf;color:#134e4a;border:none;border-radius:12px;font-weight:700;cursor:pointer}
 .celebrate{text-align:center;padding:14px;border-radius:14px;background:rgba(74,222,128,.15);color:#86efac;font-weight:700;display:none;margin-bottom:12px}
 .celebrate.show{display:block;animation:pop .4s}
 @keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
-<div class="card">
+<div class="card" id="card">
 <h1>💊 Витамины</h1>
 <p class="sub">Утро и вечер — ничего не забыть</p>
 <div class="alert ok" id="alert">✨ Загрузка…</div>
@@ -56,7 +56,7 @@ select{background:#fff}
 <select id="when"><option value="both">🌅+🌙 Утро и вечер</option><option value="morning">🌅 Только утро</option><option value="evening">🌙 Только вечер</option></select>
 <select id="emoji"><option value="💊">💊 Таблетка</option><option value="☀️">☀️ D3</option><option value="🐟">🐟 Омега</option><option value="🍊">🍊 Витамин C</option><option value="🧪">🧪 Другое</option></select>
 </div>
-<button class="btn" id="addBtn">+ Добавить</button>
+<button type="button" class="btn-add" id="addBtn">+ Добавить</button>
 </div>
 <script>
 const KEY='vibe-pills';
@@ -88,27 +88,38 @@ function render(){
   else{alert.className='alert ok';alert.textContent='✨ Всё под контролем'}
   function row(m,i,slot){
     const taken=slot==='morning'?m.m:m.e;
-    return '<div class="med'+(taken?' taken':'')+'" data-i="'+i+'" data-slot="'+slot+'"><span class="med-emoji">'+m.emoji+'</span><div class="med-info"><div class="name">'+m.name+'</div><div class="hint">'+(taken?'Принято ✓':'Нажмите, когда выпьете')+'</div></div><div class="med-check">'+(taken?'✓':'')+'</div><button class="del" data-i="'+i+'">×</button></div>';
+    return '<div class="med'+(taken?' taken':'')+'" data-i="'+i+'" data-slot="'+slot+'"><span class="med-emoji">'+m.emoji+'</span><div class="med-info"><div class="name">'+m.name+'</div><div class="hint">'+(taken?'Принято ✓':'Нажмите, когда выпьете')+'</div></div><div class="med-check">'+(taken?'✓':'')+'</div><button type="button" class="del" data-i="'+i+'">×</button></div>';
   }
   document.getElementById('morning').innerHTML=meds.map((m,i)=>slots(m).includes('morning')?row(m,i,'morning'):'').join('')||'<p style="opacity:.45;font-size:.85rem;padding:8px 0">Нет утренних</p>';
   document.getElementById('evening').innerHTML=meds.map((m,i)=>slots(m).includes('evening')?row(m,i,'evening'):'').join('')||'<p style="opacity:.45;font-size:.85rem;padding:8px 0">Нет вечерних</p>';
-  document.querySelectorAll('.med').forEach(el=>el.addEventListener('click',e=>{
-    if(e.target.classList.contains('del'))return;
-    const d=ensureToday(load());const m=d.meds[+el.dataset.i];
-    if(el.dataset.slot==='morning')m.m=!m.m;else m.e=!m.e;
-    save(d);render();
-  }));
-  document.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const d=ensureToday(load());d.meds.splice(+b.dataset.i,1);save(d);render()}));
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  render();
-  document.getElementById('addBtn').addEventListener('click',()=>{
-    const name=document.getElementById('name').value.trim();if(!name)return;
-    const d=ensureToday(load());
-    d.meds.push({name,emoji:document.getElementById('emoji').value,when:document.getElementById('when').value,m:false,e:false});
-    save(d);document.getElementById('name').value='';render();
+function bindCard(){
+  const card=document.getElementById('card');
+  if(!card||card.dataset.bound)return;
+  card.dataset.bound='1';
+  card.addEventListener('click',e=>{
+    const t=e.target;
+    if(t.id==='addBtn'||t.closest('#addBtn')){
+      const name=document.getElementById('name').value.trim();if(!name)return;
+      const d=ensureToday(load());
+      d.meds.push({name,emoji:document.getElementById('emoji').value,when:document.getElementById('when').value,m:false,e:false});
+      save(d);document.getElementById('name').value='';render();return;
+    }
+    if(t.classList.contains('del')){
+      e.stopPropagation();
+      const d=ensureToday(load());d.meds.splice(+t.dataset.i,1);save(d);render();return;
+    }
+    const med=t.closest('.med');
+    if(med&&!t.classList.contains('del')){
+      const d=ensureToday(load());const m=d.meds[+med.dataset.i];
+      if(med.dataset.slot==='morning')m.m=!m.m;else m.e=!m.e;
+      save(d);render();
+    }
   });
-});
+  document.getElementById('name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addBtn').click()});
+}
+function init(){render();bindCard()}
+if(typeof vibeBoot==='function')vibeBoot(init);else document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>`;

@@ -4,18 +4,18 @@ import { useIframeHtml } from "@/lib/use-iframe-html";
 
 type AppFullscreenProps = {
   html: string;
+  appId?: string | null;
   telegramMode?: boolean;
   onClose: () => void;
-  onOpenExternal: () => void;
 };
 
 export function AppFullscreen({
   html,
+  appId = null,
   telegramMode = false,
   onClose,
-  onOpenExternal,
 }: AppFullscreenProps) {
-  const iframeRef = useIframeHtml({ html, telegramMode });
+  const iframeRef = useIframeHtml({ html, appId, telegramMode });
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#07070f]">
@@ -30,13 +30,6 @@ export function AppFullscreen({
         <span className="min-w-0 truncate text-sm text-white/50">
           Ваше приложение
         </span>
-        <button
-          type="button"
-          onClick={onOpenExternal}
-          className="touch-target ml-auto shrink-0 rounded-lg bg-violet-500/20 px-3 py-2 text-xs font-medium text-violet-100"
-        >
-          🌐 Safari
-        </button>
       </div>
       <iframe
         ref={iframeRef}

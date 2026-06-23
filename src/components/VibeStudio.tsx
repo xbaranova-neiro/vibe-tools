@@ -4,18 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AppFullscreen } from "@/components/AppFullscreen";
 import { ChatPanel } from "@/components/ChatPanel";
+import { EditorToolbar } from "@/components/EditorToolbar";
 import { GenerationTheater } from "@/components/GenerationTheater";
 import { LandingView } from "@/components/LandingView";
-import { MobileSaveActions } from "@/components/MobileSaveActions";
 import { PreviewFrame } from "@/components/PreviewFrame";
-import { Toolbar } from "@/components/Toolbar";
 import { useTelegram } from "@/components/TelegramProvider";
+import {
+  createAppId,
+  deleteSavedApp,
+  getSavedApp,
+  saveSavedApp,
+  type SavedApp,
+} from "@/lib/app-library";
 import {
   getCreationScript,
   waitForTheater,
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
-import { canInstallToHomeScreen, getMobilePlatform } from "@/lib/html-payload";
 import { applyThemeToHtml, polishGeneratedApp } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -91,7 +96,6 @@ export function VibeStudio() {
     fullscreenHtml,
     openFullscreen,
     closeFullscreen,
-    openExternal,
   } = useTelegram();
 
   const [phase, setPhase] = useState<Phase>("landing");
@@ -107,6 +111,10 @@ export function VibeStudio() {
   const [aiReady, setAiReady] = useState(false);
   const [createdIn, setCreatedIn] = useState<string | null>(null);
   const [justRevealed, setJustRevealed] = useState(false);
+  const [currentAppId, setCurrentAppId] = useState<string | null>(null);
+  const [appEmoji, setAppEmoji] = useState("✨");
+  const [appTemplateId, setAppTemplateId] = useState<string | null>(null);
+  const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
 
   const htmlRef = useRef(html);
   const pendingHtmlRef = useRef<string | null>(null);
@@ -122,48 +130,119 @@ export function VibeStudio() {
     isTelegramRef.current = isTelegram;
   }, [isTelegram]);
 
+  const persistApp = useCallback(
+    (
+      id: string,
+      data: {
+        html: string;
+        messages: ChatMessage[];
+        title: string;
+        emoji: string;
+        templateId: string | null;
+        createdAt?: number;
+      },
+    ) => {
+      const existing = getSavedApp(id);
+      const now = Date.now();
+      const app: SavedApp = {
+        id,
+        html: data.html,
+        messages: data.messages,
+        title: data.title,
+        emoji: data.emoji,
+        templateId: data.templateId,
+        createdAt: data.createdAt ?? existing?.createdAt ?? now,
+        updatedAt: now,
+      };
+      saveSavedApp(app);
+    },
+    [],
+  );
+
   useEffect(() => {
     const saved = readSavedSession();
     if (!saved?.html) return;
 
     const timer = setTimeout(() => {
+      let appId = saved.appId ?? null;
+      if (!appId) {
+        appId = createAppId();
+        persistApp(appId, {
+          html: saved.html,
+          messages: saved.messages ?? [],
+          title: saved.title ?? "моя-штука",
+          emoji: saved.emoji ?? "✨",
+          templateId: saved.templateId ?? null,
+        });
+        setLibraryRefreshKey((k) => k + 1);
+      }
       setHtml(saved.html);
       setMessages(saved.messages ?? []);
       setTitle(saved.title ?? "моя-штука");
+      setCurrentAppId(appId);
+      setAppEmoji(saved.emoji ?? "✨");
+      setAppTemplateId(saved.templateId ?? null);
       setPhase("editor");
     }, 0);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [persistApp]);
 
   useEffect(() => {
-    if (!html) return;
-    const data: SessionData = { html, messages, title };
+    if (!html || !currentAppId) return;
+    const data: SessionData = {
+      html,
+      messages,
+      title,
+      appId: currentAppId,
+      emoji: appEmoji,
+      templateId: appTemplateId,
+    };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
-  }, [html, messages, title]);
+    persistApp(currentAppId, {
+      html,
+      messages,
+      title,
+      emoji: appEmoji,
+      templateId: appTemplateId,
+    });
+  }, [html, messages, title, currentAppId, appEmoji, appTemplateId, persistApp]);
 
   const finishCreation = useCallback(
     (resultHtml: string, meta: CreationMeta) => {
       const seconds = ((Date.now() - meta.startTime) / 1000).toFixed(1);
+      const appId = createAppId();
+      const initialMessages: ChatMessage[] = [
+        { role: "user", content: meta.prompt.slice(0, 200) },
+        {
+          role: "assistant",
+          content: `Готово! Написал «${meta.title}» — ${countLines(resultHtml)} строк HTML с анимациями и localStorage. Создано за ${seconds} сек. Покликайте в превью →`,
+        },
+      ];
+      setCurrentAppId(appId);
+      setAppEmoji(meta.emoji);
+      setAppTemplateId(meta.templateId);
       setHtml(resultHtml);
       setRevision((r) => r + 1);
       setTitle(meta.title);
       setCreatedIn(seconds);
       setJustRevealed(true);
       setPhase("editor");
-      setMessages([
-        { role: "user", content: meta.prompt.slice(0, 200) },
-        {
-          role: "assistant",
-          content: `Готово! Написал «${meta.title}» — ${countLines(resultHtml)} строк HTML с анимациями и localStorage. Создано за ${seconds} сек. Покликайте в превью →`,
-        },
-      ]);
+      setMessages(initialMessages);
+      persistApp(appId, {
+        html: resultHtml,
+        messages: initialMessages,
+        title: meta.title,
+        emoji: meta.emoji,
+        templateId: meta.templateId,
+      });
+      setLibraryRefreshKey((k) => k + 1);
       setTimeout(() => setJustRevealed(false), 2000);
       if (isTelegramRef.current) {
         setTimeout(() => openFullscreen(resultHtml), 100);
       }
     },
-    [openFullscreen],
+    [openFullscreen, persistApp],
   );
 
   const generate = useCallback(
@@ -410,6 +489,34 @@ export function VibeStudio() {
     await generate(refinement, currentHtml);
   };
 
+  const handleOpenApp = (id: string) => {
+    const app = getSavedApp(id);
+    if (!app) return;
+    setHtml(app.html);
+    setMessages(app.messages);
+    setTitle(app.title);
+    setCurrentAppId(app.id);
+    setAppEmoji(app.emoji);
+    setAppTemplateId(app.templateId);
+    setRevision((r) => r + 1);
+    setCreatedIn(null);
+    setError(null);
+    setPhase("editor");
+  };
+
+  const handleDeleteApp = (id: string) => {
+    deleteSavedApp(id);
+    if (currentAppId === id) {
+      handleReset();
+    }
+    setLibraryRefreshKey((k) => k + 1);
+  };
+
+  const handleBackToLibrary = () => {
+    setPhase("landing");
+    setLibraryRefreshKey((k) => k + 1);
+  };
+
   const handleReset = () => {
     setPrompt("");
     setHtml(null);
@@ -421,6 +528,9 @@ export function VibeStudio() {
     setRevision(0);
     setCreatedIn(null);
     setCreationMeta(null);
+    setCurrentAppId(null);
+    setAppEmoji("✨");
+    setAppTemplateId(null);
     pendingHtmlRef.current = null;
     apiPromiseRef.current = null;
     cachedSession = null;
@@ -453,10 +563,12 @@ export function VibeStudio() {
         }}
         onCreate={handleCreate}
         onTemplate={handleTemplateAndCreate}
+        onOpenApp={handleOpenApp}
+        onDeleteApp={handleDeleteApp}
+        libraryRefreshKey={libraryRefreshKey}
         selectedId={selectedTemplate}
         error={error}
         isTelegram={isTelegram}
-        onOpenExternal={openExternal}
       />
     );
   }
@@ -466,9 +578,9 @@ export function VibeStudio() {
       {fullscreenHtml && (
         <AppFullscreen
           html={fullscreenHtml}
+          appId={currentAppId}
           telegramMode={isTelegram}
           onClose={closeFullscreen}
-          onOpenExternal={openExternal}
         />
       )}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-3 py-4 pb-36 sm:gap-4 sm:px-4 sm:py-6 sm:pb-28 lg:px-6 lg:pb-6">
@@ -483,30 +595,24 @@ export function VibeStudio() {
             )}
           </div>
           <p className="mt-1 hidden text-sm text-white/50 sm:block">
-            {canInstallToHomeScreen()
-              ? getMobilePlatform() === "android"
-                ? "«Иконка на экране» — как приложение · «Сохранить» — файл HTML"
-                : "«Иконка на экране» — как приложение · «Файл» — только в Safari"
-              : isTelegram
-                ? "«В чате» — превью · «Safari» — сохранить"
-                : "Сохраните HTML — откроется офлайн"}
+            Приложение сохранено — данные остаются в этом браузере
           </p>
         </div>
         <div className="hidden shrink-0 lg:block">
-          <Toolbar
+          <EditorToolbar
             html={html}
-            title={title}
-            onReset={handleReset}
+            onBack={handleBackToLibrary}
+            onNew={handleReset}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
           />
         </div>
         <button
           type="button"
-          onClick={handleReset}
+          onClick={handleBackToLibrary}
           className="touch-target self-start rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/70 lg:hidden"
         >
-          🔄 Заново
+          ← Мои
         </button>
       </header>
 
@@ -521,6 +627,7 @@ export function VibeStudio() {
           <PreviewFrame
             html={html}
             title={title}
+            appId={currentAppId}
             loading={loading}
             revision={revision}
             isTelegram={isTelegram}
@@ -540,9 +647,10 @@ export function VibeStudio() {
 
       {html && (
         <div className="mobile-bottom-bar fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 px-3 py-3 backdrop-blur-md lg:hidden">
-          <MobileSaveActions
+          <EditorToolbar
             html={html}
-            title={title}
+            onBack={handleBackToLibrary}
+            onNew={handleReset}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
           />

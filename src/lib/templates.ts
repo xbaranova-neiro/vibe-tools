@@ -117,6 +117,9 @@ export type SessionData = {
   html: string;
   messages: { role: "user" | "assistant"; content: string }[];
   title: string;
+  appId?: string;
+  emoji?: string;
+  templateId?: string | null;
 };
 
 export function getTemplateWowHint(templateId: string): string | null {
