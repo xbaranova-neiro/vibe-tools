@@ -1,17 +1,12 @@
-/** Сообщение, когда браузер не достучался до API (часто без VPN + Vercel). */
+/** Сообщение, когда браузер не достучался до API. */
 export function networkErrorMessage(): string {
   const mirror = process.env.NEXT_PUBLIC_TIMEWEB_URL?.trim();
-  const onVercel =
-    typeof window !== "undefined" &&
-    /vercel\.app$/i.test(window.location.hostname);
 
-  if (onVercel) {
-    return mirror
-      ? `Сервер не ответил — без VPN Vercel часто недоступен из России. Попробуйте шаблон (он без AI) или откройте версию на Timeweb: ${mirror}`
-      : "Сервер не ответил — без VPN Vercel часто недоступен из России. Выберите готовый шаблон (работает без AI) или включите VPN.";
+  if (mirror) {
+    return `Не удалось связаться с сервером. Попробуйте готовый шаблон или откройте ${mirror}`;
   }
 
-  return "Сервер не ответил. Проверьте интернет или попробуйте готовый шаблон — он собирается мгновенно.";
+  return "Не удалось связаться с сервером. Проверьте интернет или выберите готовый шаблон — он открывается сразу.";
 }
 
 export function isLikelyNetworkError(err: unknown): boolean {
@@ -22,10 +17,10 @@ export function isLikelyNetworkError(err: unknown): boolean {
   );
 }
 
-/** Сообщение при ошибке парсинга JSON (Vercel HTML вместо API). */
+/** Сообщение при неверном ответе сервера (HTML вместо JSON). */
 export function vercelOrParseErrorMessage(): string {
   return networkErrorMessage().replace(
-    "Сервер не ответил",
-    "Vercel вернул ошибку вместо ответа",
+    "Не удалось связаться с сервером",
+    "Сервер вернул ошибку",
   );
 }

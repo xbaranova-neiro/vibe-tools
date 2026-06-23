@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Vibe Tools — сделай полезную штуку за минуту",
   description:
-    "Вайб-кодинг на практике: опиши идею и получи готовое мини-приложение — трекер, калькулятор, список.",
+    "Опиши идею — получи готовый трекер, список или калькулятор прямо в браузере.",
 };
 
 export default function RootLayout({

@@ -329,13 +329,13 @@ export function VibeStudio() {
           err instanceof Error ? err.message : "Не удалось сгенерировать";
         if (userCancelledRef.current) {
           message =
-            "Генерация отменена. Выберите готовый шаблон — он собирается сразу, без AI.";
+            "Генерация отменена. Выберите готовый шаблон — он открывается сразу.";
         } else if (
           err instanceof DOMException &&
           err.name === "AbortError"
         ) {
           message =
-            "Сервер не ответил за 2 минуты. Без VPN Vercel часто недоступен — выберите шаблон или включите VPN.";
+            "Сервер не ответил за 2 минуты. Попробуйте готовый шаблон или повторите позже.";
         } else if (isJsonParseError(err)) {
           message = vercelOrParseErrorMessage();
         } else if (isLikelyNetworkError(err)) {
@@ -481,7 +481,7 @@ export function VibeStudio() {
   const cancelCreation = () => {
     userCancelledRef.current = true;
     creationErrorRef.current =
-      "Генерация отменена. Выберите готовый шаблон — он собирается сразу, без AI.";
+      "Генерация отменена. Выберите готовый шаблон — он открывается сразу.";
     generateAbortRef.current?.abort();
     setAiReady(true);
   };

@@ -183,12 +183,12 @@ export async function POST(request: Request) {
     const errText = error instanceof Error ? error.message : "";
     const message =
       errText.includes("401")
-        ? "Неверный API ключ OpenAI."
+        ? "Неверный ключ доступа к нейросети."
         : errText.includes("429")
-          ? "Слишком много запросов к OpenAI. Подождите минуту."
+          ? "Слишком много запросов. Подождите минуту."
           : errText.includes("timeout") || errText.includes("Timeout")
-            ? "Генерация заняла слишком долго. На Vercel Hobby лимит ~10 сек — используйте Timeweb или шаблон."
-            : "Ошибка генерации. Попробуйте шаблон или деплой на Timeweb (без VPN).";
+            ? "Генерация заняла слишком долго. Попробуйте шаблон или опишите идею короче."
+            : "Не удалось создать. Попробуйте шаблон или переформулируйте запрос.";
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -81,11 +81,11 @@ export function LandingView({
             <span className="mt-1 block text-shimmer">сам это создаст</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-base lg:mx-0 lg:text-lg">
-            Шаблон или своя идея — мини-приложение с кнопками, анимациями и
-            памятью в браузере.
+            Шаблон или своя идея — готовая штука с кнопками, анимациями и
+            сохранением в браузере.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-1.5 sm:mt-6 sm:gap-2 lg:justify-start">
-            {["7 шаблонов", "без VPN", "всё в браузере"].map((tag) => (
+            {["7 шаблонов", "бесплатно", "в браузере"].map((tag) => (
               <span
                 key={tag}
                 className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/45 sm:px-3 sm:text-xs"
@@ -127,7 +127,7 @@ export function LandingView({
               </p>
             </div>
             <div className="border-t border-white/10 bg-violet-500/10 px-4 py-2.5 text-center text-xs font-medium text-violet-200/90">
-              ⚡ так выглядит генерация
+              ⚡ так собирается приложение
             </div>
           </div>
         </div>
@@ -168,7 +168,7 @@ export function LandingView({
               Готовые шаблоны — работают всегда
             </h2>
             <p className="mt-0.5 text-xs text-white/45 sm:mt-1 sm:text-sm">
-              Без AI и VPN · нажми и пользуйся
+              Нажми и пользуйся сразу
             </p>
           </div>
           <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300 sm:text-xs">
@@ -198,7 +198,7 @@ export function LandingView({
                 </label>
                 <p className="text-[11px] text-white/45 sm:text-xs">
                   {aiAvailable
-                    ? "Нужен доступ к серверу и OpenAI"
+                    ? "Обычно занимает полминуты"
                     : "Сейчас недоступно — выберите шаблон выше"}
                 </p>
               </div>
@@ -224,7 +224,7 @@ export function LandingView({
               disabled={!prompt.trim() || healthLoading || !aiAvailable}
               className="touch-target mt-4 w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/25 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 sm:mt-5 sm:w-auto sm:min-w-[200px] sm:px-10"
             >
-              {aiAvailable ? "✨ Создать с нуля" : "AI недоступен — выберите шаблон"}
+              {aiAvailable ? "✨ Создать с нуля" : "Сейчас недоступно — выберите шаблон"}
             </button>
           </div>
         </div>

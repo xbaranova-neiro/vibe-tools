@@ -36,7 +36,7 @@ export function ChatPanel({
         <h3 className="text-sm font-semibold text-white">Доработка</h3>
         <p className="text-xs text-white/50">
           {isInitialGeneration
-            ? "ИИ создаёт первую версию…"
+            ? "Создаёт первую версию…"
             : hasHtml
               ? "Опишите что изменить"
               : "Сначала создайте приложение"}

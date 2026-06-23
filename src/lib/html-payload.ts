@@ -1,10 +1,7 @@
 import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
-import { isMobileDevice } from "@/lib/device";
-import { isTelegramWebView, openInExternalBrowser } from "@/lib/telegram-env";
-
-export { isIosDevice, isAndroidDevice, isMobileDevice, getMobilePlatform, canInstallToHomeScreen } from "@/lib/device";
 
 export const MAX_PAYLOAD_LEN = 120_000;
+export const MAX_HASH_LEN = MAX_PAYLOAD_LEN;
 
 function base64urlEncode(bytes: Uint8Array): string {
   let binary = "";
@@ -86,7 +83,7 @@ type PublishResponse = {
   mode?: string;
 };
 
-/** Публикует на сервере → короткая ссылка /m/abc123. */
+/** Публикует на сервере → короткая ссылка /m/abc123 (для Telegram-превью). */
 export async function publishAppUrl(html: string): Promise<PublishResponse | null> {
   try {
     const res = await fetch("/api/publish", {
@@ -100,71 +97,3 @@ export async function publishAppUrl(html: string): Promise<PublishResponse | nul
     return null;
   }
 }
-
-async function fallbackLongUrl(html: string): Promise<string | null> {
-  const payload = await encodeHtmlPayload(html);
-  if (payload.length > MAX_PAYLOAD_LEN) return null;
-  const origin =
-    typeof window !== "undefined" ? window.location.origin : "";
-  return `${origin}${appPagePath(payload)}`;
-}
-
-export async function appPageUrl(html: string): Promise<string | null> {
-  const published = await publishAppUrl(html);
-  if (published?.url) return published.url;
-  return fallbackLongUrl(html);
-}
-
-export type HomeScreenResult = "ok" | "too-large" | "unsupported";
-
-function openHtmlBlobInNewTab(html: string): boolean {
-  const prepared = prepareHtmlForStandalone(html);
-  const blob = new Blob([prepared], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const tab = window.open(url, "_blank", "noopener,noreferrer");
-  if (!tab) {
-    window.location.assign(url);
-  }
-  window.setTimeout(() => URL.revokeObjectURL(url), 120_000);
-  return true;
-}
-
-function navigate(url: string): void {
-  if (isTelegramWebView()) {
-    openInExternalBrowser(url);
-    return;
-  }
-  window.location.assign(url);
-}
-
-export async function openForHomeScreen(html: string): Promise<HomeScreenResult> {
-  if (typeof window === "undefined") return "unsupported";
-  const url = await appPageUrl(html);
-  if (!url) return "too-large";
-  navigate(url);
-  return "ok";
-}
-
-export async function openAppInBrowser(html: string): Promise<boolean> {
-  if (isTelegramWebView()) {
-    const url = await appPageUrl(html);
-    if (!url) return false;
-    openInExternalBrowser(url);
-    return true;
-  }
-
-  if (!isMobileDevice()) {
-    return openHtmlBlobInNewTab(html);
-  }
-
-  const url = await appPageUrl(html);
-  if (!url) return false;
-  navigate(url);
-  return true;
-}
-
-export function homeScreenUrl(html: string): Promise<string | null> {
-  return appPageUrl(html);
-}
-
-export const MAX_HASH_LEN = MAX_PAYLOAD_LEN;

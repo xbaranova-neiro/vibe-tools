@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Моё приложение",
-  description: "Мини-приложение из Vibe Tools",
+  description: "Приложение, созданное в Vibe Tools",
   appleWebApp: {
     capable: true,
     title: "Моё приложение",

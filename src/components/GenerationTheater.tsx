@@ -113,7 +113,7 @@ export function GenerationTheater({
           {waitingForAi && (
             <p className="mt-1.5 text-xs text-white/45 sm:mt-2">
               {elapsed > 50
-                ? "Долго ждём — возможно, сервер недоступен без VPN"
+                ? "Занимает дольше обычного — подождите ещё немного"
                 : "Обычно 15–40 сек"}
             </p>
           )}
@@ -174,10 +174,10 @@ export function GenerationTheater({
           <div className="mb-1.5 flex justify-between text-[10px] text-white/40">
             <span>
               {waitingForAi
-                ? "Жду OpenAI…"
+                ? "Ещё немного…"
                 : done
                   ? "Собрано"
-                  : "Генерация…"}
+                  : "Собираю…"}
             </span>
             <span>{elapsed.toFixed(1)} сек</span>
           </div>

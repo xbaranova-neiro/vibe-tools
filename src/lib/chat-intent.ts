@@ -27,5 +27,5 @@ export function extractAppHint(html: string): string {
   const title = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim();
   const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim();
   const parts = [title, h1].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : "мини-приложение";
+  return parts.length > 0 ? parts.join(" · ") : "приложение";
 }

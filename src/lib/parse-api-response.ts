@@ -1,23 +1,20 @@
-function onVercelHost(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    /vercel\.app$/i.test(window.location.hostname)
-  );
+function mirrorUrl(): string | undefined {
+  return process.env.NEXT_PUBLIC_TIMEWEB_URL?.trim() || undefined;
 }
 
-function vercelFailureMessage(status: number): string {
-  const mirror = process.env.NEXT_PUBLIC_TIMEWEB_URL?.trim();
+function serverFailureMessage(status: number): string {
+  const mirror = mirrorUrl();
   if (status === 504 || status === 502) {
     return mirror
-      ? `Vercel оборвал запрос (таймаут). Шаблоны работают сразу, для AI — ${mirror}`
-      : "Vercel оборвал запрос (лимит ~10 сек). Выберите шаблон выше — он без AI и работает сразу.";
+      ? `Запрос занял слишком долго. Выберите шаблон — он открывается сразу · ${mirror}`
+      : "Запрос занял слишком долго. Выберите готовый шаблон — он открывается сразу.";
   }
   return mirror
-    ? `Генерация на Vercel недоступна. Шаблоны работают сразу · для AI: ${mirror}`
-    : "Генерация на Vercel недоступна без VPN. Выберите готовый шаблон — он работает сразу.";
+    ? `Создание с нуля сейчас недоступно. Шаблоны работают сразу · ${mirror}`
+    : "Создание с нуля сейчас недоступно. Выберите готовый шаблон — он открывается сразу.";
 }
 
-/** Безопасный разбор ответа API — Vercel часто отдаёт HTML «An error occurred…». */
+/** Безопасный разбор ответа API — иногда приходит HTML вместо JSON. */
 export async function parseApiJsonResponse<T>(
   res: Response,
 ): Promise<{ data: T | null; error: string }> {
@@ -29,9 +26,7 @@ export async function parseApiJsonResponse<T>(
       data: null,
       error: res.ok
         ? "Пустой ответ сервера"
-        : onVercelHost()
-          ? vercelFailureMessage(res.status)
-          : `Ошибка сервера (${res.status})`,
+        : serverFailureMessage(res.status),
     };
   }
 
@@ -41,11 +36,7 @@ export async function parseApiJsonResponse<T>(
       const errBody = data as { error?: string };
       return {
         data: null,
-        error:
-          errBody.error ??
-          (onVercelHost()
-            ? vercelFailureMessage(res.status)
-            : `Ошибка сервера (${res.status})`),
+        error: errBody.error ?? serverFailureMessage(res.status),
       };
     }
     return { data, error: "" };
@@ -54,11 +45,11 @@ export async function parseApiJsonResponse<T>(
       trimmed.startsWith("<!") ||
       trimmed.startsWith("<html") ||
       trimmed.includes("<!DOCTYPE");
-    const looksLikeVercelPlain =
+    const looksLikePlainError =
       /^An error/i.test(trimmed) || /^Internal Server Error/i.test(trimmed);
 
-    if (onVercelHost() || looksLikeHtml || looksLikeVercelPlain) {
-      return { data: null, error: vercelFailureMessage(res.status) };
+    if (looksLikeHtml || looksLikePlainError) {
+      return { data: null, error: serverFailureMessage(res.status) };
     }
 
     return {
