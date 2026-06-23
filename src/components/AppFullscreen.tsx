@@ -1,16 +1,21 @@
 "use client";
 
-import { prepareHtmlForPreview } from "@/lib/prepare-html-for-preview";
-import { IFRAME_SANDBOX } from "@/lib/telegram-env";
+import { useIframeHtml } from "@/lib/use-iframe-html";
 
 type AppFullscreenProps = {
   html: string;
+  telegramMode?: boolean;
   onClose: () => void;
   onOpenExternal: () => void;
 };
 
-export function AppFullscreen({ html, onClose, onOpenExternal }: AppFullscreenProps) {
-  const prepared = prepareHtmlForPreview(html);
+export function AppFullscreen({
+  html,
+  telegramMode = false,
+  onClose,
+  onOpenExternal,
+}: AppFullscreenProps) {
+  const iframeRef = useIframeHtml({ html, telegramMode });
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#07070f]">
@@ -32,9 +37,8 @@ export function AppFullscreen({ html, onClose, onOpenExternal }: AppFullscreenPr
         </button>
       </div>
       <iframe
+        ref={iframeRef}
         title="Приложение"
-        srcDoc={prepared}
-        sandbox={IFRAME_SANDBOX}
         className="min-h-0 flex-1 w-full border-0 bg-white"
       />
     </div>

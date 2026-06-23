@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useState,
+} from "react";
 
 import {
   initTelegramWebApp,
@@ -24,21 +29,19 @@ const TelegramContext = createContext<TelegramContextValue>({
   openExternal: () => {},
 });
 
+function detectTelegram(): boolean {
+  if (typeof window === "undefined") return false;
+  return isTelegramWebView();
+}
+
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
-  const [isTelegram, setIsTelegram] = useState(false);
+  const [isTelegram, setIsTelegram] = useState(detectTelegram);
   const [fullscreenHtml, setFullscreenHtml] = useState<string | null>(null);
 
-  useEffect(() => {
-    const detect = () => {
-      if (isTelegramWebView()) {
-        setIsTelegram(true);
-        initTelegramWebApp();
-      }
-    };
-
-    detect();
-    const t = window.setTimeout(detect, 300);
-    return () => window.clearTimeout(t);
+  useLayoutEffect(() => {
+    if (!detectTelegram()) return;
+    setIsTelegram(true);
+    initTelegramWebApp();
   }, []);
 
   return (

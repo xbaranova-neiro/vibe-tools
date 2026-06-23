@@ -107,10 +107,15 @@ export function VibeStudio() {
   const htmlRef = useRef(html);
   const pendingHtmlRef = useRef<string | null>(null);
   const apiPromiseRef = useRef<Promise<string | null> | null>(null);
+  const isTelegramRef = useRef(isTelegram);
 
   useEffect(() => {
     htmlRef.current = html;
   }, [html]);
+
+  useEffect(() => {
+    isTelegramRef.current = isTelegram;
+  }, [isTelegram]);
 
   useEffect(() => {
     const saved = readSavedSession();
@@ -149,8 +154,11 @@ export function VibeStudio() {
         },
       ]);
       setTimeout(() => setJustRevealed(false), 2000);
+      if (isTelegramRef.current) {
+        setTimeout(() => openFullscreen(resultHtml), 100);
+      }
     },
-    [],
+    [openFullscreen],
   );
 
   const generate = useCallback(
@@ -400,6 +408,7 @@ export function VibeStudio() {
       {fullscreenHtml && (
         <AppFullscreen
           html={fullscreenHtml}
+          telegramMode={isTelegram}
           onClose={closeFullscreen}
           onOpenExternal={openExternal}
         />
@@ -446,7 +455,6 @@ export function VibeStudio() {
             title={title}
             loading={loading}
             revision={revision}
-            useSrcDoc={isTelegram}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
             onOpenExternal={openExternal}
