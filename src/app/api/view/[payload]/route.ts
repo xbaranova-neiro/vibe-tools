@@ -1,4 +1,5 @@
 import { decodeHtmlPayloadServer } from "@/lib/decode-payload-server";
+import { ensureStandaloneRuntime } from "@/lib/prepare-html-for-preview";
 
 type RouteContext = {
   params: Promise<{ payload: string }>;
@@ -18,7 +19,7 @@ export async function GET(_request: Request, context: RouteContext) {
     );
   }
 
-  return new Response(html, {
+  return new Response(ensureStandaloneRuntime(html), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "private, max-age=3600",

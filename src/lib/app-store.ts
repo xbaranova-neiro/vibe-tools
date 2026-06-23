@@ -1,6 +1,6 @@
 import { head, put } from "@vercel/blob";
 
-import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
+import { prepareHtmlForStandalone, ensureStandaloneRuntime } from "@/lib/prepare-html-for-preview";
 
 const TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 дней
 
@@ -66,7 +66,8 @@ export async function loadStandaloneApp(id: string): Promise<string | null> {
       const meta = await head(blobPath(id));
       const res = await fetch(meta.url);
       if (!res.ok) return null;
-      return res.text();
+      const raw = await res.text();
+      return ensureStandaloneRuntime(raw);
     } catch {
       return null;
     }
@@ -78,5 +79,5 @@ export async function loadStandaloneApp(id: string): Promise<string | null> {
     memStore().delete(id);
     return null;
   }
-  return entry.html;
+  return ensureStandaloneRuntime(entry.html);
 }

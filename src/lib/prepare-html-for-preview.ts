@@ -5,12 +5,112 @@ import {
 import { isTelegramWebView } from "@/lib/telegram-env";
 
 const MOBILE_FIX_STYLE = `<style id="vibe-mobile-fix">
-button,.btn-add,.btn,.btn-reset,input[type="button"],input[type="submit"]{
-  min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer
+*,*::before,*::after{box-sizing:border-box}
+html{
+  -webkit-text-size-adjust:100%;
+  height:100%;
+  -webkit-tap-highlight-color:transparent;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch
 }
-input,select,textarea{font-size:16px!important}
-body{-webkit-overflow-scrolling:touch;overflow-x:hidden}
+body{
+  min-height:100%;
+  min-height:100dvh;
+  min-height:-webkit-fill-available;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:auto;
+  position:relative;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px)
+}
+@supports (-webkit-touch-callout:none){
+  html{height:-webkit-fill-available}
+  body{
+    min-height:-webkit-fill-available!important;
+    height:auto!important;
+    display:block!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important
+  }
+}
+button,.btn-add,.btn,.btn-reset,.btn-remove,[role="button"],
+input[type="button"],input[type="submit"],.task,.item,.med,.show,.tile,.day,.pill,.tab,.chip,.filters button,.tabs button,.chips button{
+  min-height:44px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+  -webkit-user-select:none;
+  user-select:none
+}
+input:not([type="button"]):not([type="submit"]),select,textarea{
+  font-size:16px!important;
+  touch-action:manipulation;
+  max-width:100%
+}
+h1,h2,h3,h4,p,span,label,li,.title,.sub,.count,.num,.ring-text{
+  overflow-wrap:break-word;
+  word-break:break-word;
+  max-width:100%
+}
+.card,.container,main,section,form,.hero,.progress-box{
+  max-width:100%!important;
+  width:100%;
+  overflow-x:hidden
+}
+img,svg,video{max-width:100%;height:auto}
+.list,.items,.timeline,.bars,.legend,.colWant,.colWatch,.colDone,.weekAll,.events{
+  -webkit-overflow-scrolling:touch!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important
+}
+#vibe-homescreen-guide,#vibe-ios-hint,#vibe-save-hint,#vibe-save-style{
+  display:none!important;
+  pointer-events:none!important;
+  visibility:hidden!important;
+  height:0!important;
+  overflow:hidden!important
+}
 </style>`;
+
+/** Доп. init для iOS standalone: скролл, оверлеи, клики. */
+const VIBE_STANDALONE_BOOT = `<script id="vibe-standalone-boot">
+(function(){
+  var standalone=window.navigator.standalone===true||window.matchMedia("(display-mode: standalone)").matches;
+  var ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+  function stripOverlays(){
+    ["vibe-homescreen-guide","vibe-ios-hint","vibe-save-hint"].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.remove();
+    });
+    var style=document.getElementById("vibe-save-style");if(style)style.remove();
+  }
+  function fixScrollRegions(){
+    var sel=".list,.items,.timeline,.bars,.legend,.colWant,.colWatch,.colDone,.weekAll,.events,.show-list,.med-list";
+    document.querySelectorAll(sel).forEach(function(el){
+      el.style.webkitOverflowScrolling="touch";
+      var cs=getComputedStyle(el);
+      if((cs.overflowY==="auto"||cs.overflowY==="scroll"||cs.maxHeight!=="none")&&el.scrollHeight>el.clientHeight+2){
+        el.style.overflowY="auto";
+        el.style.touchAction="pan-y";
+      }
+    });
+  }
+  function boot(){
+    if(standalone||ios)stripOverlays();
+    fixScrollRegions();
+    if(ios){
+      document.documentElement.style.height="auto";
+      document.body.style.minHeight="-webkit-fill-available";
+    }
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
+  else boot();
+  window.addEventListener("load",fixScrollRegions);
+})();
+</script>`;
 
 /** Ранний init: iOS file:// + поздний DOMContentLoaded + localStorage. */
 const VIBE_HEAD_INIT = `<script id="vibe-head-init">
@@ -111,6 +211,11 @@ function injectMobileMeta(html: string): string {
       /<head([^>]*)>/i,
       '<head$1>\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
     );
+  } else {
+    result = result.replace(
+      /<meta[^>]+name=["']viewport["'][^>]*>/i,
+      '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+    );
   }
 
   if (!result.includes("apple-mobile-web-app-capable")) {
@@ -124,33 +229,48 @@ function injectMobileMeta(html: string): string {
     );
   }
 
-  if (!result.includes("vibe-mobile-fix")) {
+  if (result.includes("vibe-mobile-fix")) {
+    result = result.replace(
+      /<style id="vibe-mobile-fix">[\s\S]*?<\/style>/i,
+      MOBILE_FIX_STYLE.trim(),
+    );
+  } else {
     result = result.replace(/<\/head>/i, `${MOBILE_FIX_STYLE}\n</head>`);
+  }
+
+  if (result.includes("vibe-standalone-boot")) {
+    result = result.replace(
+      /<script id="vibe-standalone-boot">[\s\S]*?<\/script>/i,
+      VIBE_STANDALONE_BOOT.trim(),
+    );
+  } else {
+    result = result.replace(/<\/body>/i, `${VIBE_STANDALONE_BOOT}\n</body>`);
   }
 
   return result;
 }
 
-/** Подсказка «На экран Домой» — только в Safari, не в ярлыке. */
-const HOME_SCREEN_SAFARI_GUIDE = `<div id="vibe-homescreen-guide" style="position:fixed;bottom:0;left:0;right:0;z-index:2147483647;padding:14px 14px max(14px,env(safe-area-inset-bottom));background:rgba(15,15,25,.97);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.5;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
-<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#c4b5fd">📱 Как добавить на экран «Домой»</p>
-<ol style="margin:0 0 12px;padding-left:18px;color:rgba(255,255,255,.85)">
-<li style="margin-bottom:6px">Внизу нажмите <strong style="color:#fff">Поделиться</strong> — квадрат со стрелкой вверх</li>
-<li style="margin-bottom:6px">Прокрутите меню → <strong style="color:#fff">На экран «Домой»</strong></li>
-<li>Справа вверху нажмите <strong style="color:#fff">Добавить</strong></li>
-</ol>
-<p style="margin:0 0 12px;font-size:11px;color:rgba(255,255,255,.5">⚠️ Добавляйте ярлык сейчас — когда видите это приложение. Потом откройте иконку с домашнего экрана.</p>
-<button type="button" onclick="document.getElementById('vibe-homescreen-guide').remove()" style="display:block;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(90deg,#7c3aed,#d946ef);color:#fff;font-weight:700;font-size:15px;cursor:pointer">✓ Понятно, пользоваться</button>
-</div>
-<script id="vibe-homescreen-guide-script">
-(function(){
-  var el=document.getElementById("vibe-homescreen-guide");
-  if(!el)return;
-  var standalone=window.navigator.standalone===true||window.matchMedia("(display-mode: standalone)").matches;
-  if(standalone){el.remove();return}
-  if(!/iPhone|iPad|iPod/i.test(navigator.userAgent))el.remove();
-})();
-</script>`;
+/** Готовит HTML для «На экран Домой» и /api/view — чистое приложение без оверлеев. */
+export function prepareHtmlForStandalone(html: string): string {
+  return injectHeadInit(injectMobileMeta(stripVibeOverlays(html)));
+}
+
+/** Убирает подсказки Vibe Tools из уже сохранённого HTML. */
+function stripVibeOverlays(html: string): string {
+  return html
+    .replace(/<div id="vibe-homescreen-guide"[\s\S]*?<\/div>\s*/i, "")
+    .replace(/<script id="vibe-homescreen-guide-script"[\s\S]*?<\/script>\s*/i, "")
+    .replace(/<div id="vibe-ios-hint"[\s\S]*?<\/div>\s*/i, "")
+    .replace(/<script id="vibe-ios-hint-script"[\s\S]*?<\/script>\s*/i, "")
+    .replace(/<style id="vibe-save-style"[\s\S]*?<\/style>\s*/i, "")
+    .replace(/<div id="vibe-save-hint"[\s\S]*?<\/div>\s*/i, "")
+    .replace(/<script id="vibe-save-script"[\s\S]*?<\/script>\s*/i, "");
+}
+
+/** Повторно накладывает актуальные фиксы при отдаче с сервера. */
+export function ensureStandaloneRuntime(html: string): string {
+  return prepareHtmlForStandalone(html);
+}
 
 export function slugifyFilename(title: string): string {
   const slug = title
@@ -165,20 +285,6 @@ export function slugifyFilename(title: string): string {
 /** Готовит HTML к превью в iframe. */
 export function prepareHtmlForPreview(html: string): string {
   return injectHeadInit(injectMobileMeta(html));
-}
-
-/** Готовит HTML для «На экран Домой» и /api/view — чистое приложение. */
-export function prepareHtmlForStandalone(html: string): string {
-  let result = injectHeadInit(injectMobileMeta(html));
-
-  if (!result.includes("vibe-homescreen-guide")) {
-    result = result.replace(
-      /<\/body>/i,
-      `${HOME_SCREEN_SAFARI_GUIDE}\n</body>`,
-    );
-  }
-
-  return result;
 }
 
 /** Готовит HTML для сохранения в «Файлы» (iOS file://). */
