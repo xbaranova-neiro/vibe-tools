@@ -1,37 +1,47 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
-import {
-  openHtmlInNewTab,
-  prepareHtmlForPreview,
-  saveHtmlToDevice,
-} from "@/lib/prepare-html-for-preview";
+import { MobileSaveActions } from "@/components/MobileSaveActions";
+import { isIosDevice } from "@/lib/html-payload";
+import { prepareHtmlForPreview } from "@/lib/prepare-html-for-preview";
+import { IFRAME_SANDBOX } from "@/lib/telegram-env";
 
 type PreviewFrameProps = {
   html: string | null;
   title?: string;
   loading?: boolean;
   revision?: number;
+  useSrcDoc?: boolean;
+  isTelegram?: boolean;
+  onOpenFullscreen?: (html: string) => void;
+  onOpenExternal?: () => void;
 };
-
-const IFRAME_SANDBOX =
-  "allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation";
 
 export function PreviewFrame({
   html,
   title = "moe-prilozhenie",
   loading,
   revision = 0,
+  useSrcDoc = false,
+  isTelegram = false,
+  onOpenFullscreen,
+  onOpenExternal,
 }: PreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const blobUrlRef = useRef<string | null>(null);
+  const isIos = isIosDevice();
+
+  const prepared = useMemo(
+    () => (html ? prepareHtmlForPreview(html) : null),
+    [html, revision],
+  );
 
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!html || !iframe) return;
+    if (useSrcDoc) return;
 
-    const prepared = prepareHtmlForPreview(html);
+    const iframe = iframeRef.current;
+    if (!prepared || !iframe) return;
 
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
@@ -50,55 +60,42 @@ export function PreviewFrame({
         blobUrlRef.current = null;
       }
     };
-  }, [html, revision]);
-
-  const openFullscreen = () => {
-    if (!html) return;
-    openHtmlInNewTab(html, { includeSaveBar: true });
-  };
-
-  const saveToPhone = () => {
-    if (!html) return;
-    void saveHtmlToDevice(html, title);
-  };
+  }, [prepared, useSrcDoc]);
 
   const frameShell = (frame: React.ReactNode) => (
     <div className="flex h-[min(75vh,640px)] min-h-[460px] w-full flex-col gap-2">
       {html && (
-        <div className="flex flex-col gap-2 px-1">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={saveToPhone}
-              className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-2.5 text-sm font-semibold text-white shadow-md"
-            >
-              💾 Сохранить
-            </button>
-            <button
-              type="button"
-              onClick={openFullscreen}
-              className="rounded-xl border border-violet-400/40 bg-violet-500/20 px-3 py-2.5 text-sm font-semibold text-violet-50"
-            >
-              ↗ Открыть
-            </button>
-          </div>
-          <p className="text-center text-[11px] text-white/45">
-            «Сохранить» → Файлы на телефоне · работает офлайн
-          </p>
-        </div>
+        <MobileSaveActions
+          html={html}
+          title={title}
+          isTelegram={isTelegram}
+          onOpenFullscreen={onOpenFullscreen}
+          onOpenExternal={onOpenExternal}
+          compact
+        />
+      )}
+      {!isTelegram && !isIos && (
+        <p className="px-1 text-center text-[11px] text-white/45">
+          «Сохранить» → Файлы · работает офлайн
+        </p>
       )}
       <div className="relative min-h-0 flex-1">{frame}</div>
     </div>
   );
 
+  const iframeProps = {
+    key: revision,
+    ref: iframeRef,
+    title: "Превью приложения",
+    sandbox: IFRAME_SANDBOX,
+    ...(useSrcDoc && prepared ? { srcDoc: prepared } : {}),
+  };
+
   if (loading && html) {
     return frameShell(
       <>
         <iframe
-          key={revision}
-          ref={iframeRef}
-          title="Превью приложения"
-          sandbox={IFRAME_SANDBOX}
+          {...iframeProps}
           className="h-full w-full rounded-2xl border border-white/10 bg-white opacity-40"
         />
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/40 backdrop-blur-sm">
@@ -135,10 +132,7 @@ export function PreviewFrame({
 
   return frameShell(
     <iframe
-      key={revision}
-      ref={iframeRef}
-      title="Превью приложения"
-      sandbox={IFRAME_SANDBOX}
+      {...iframeProps}
       className="h-full w-full rounded-2xl border border-white/15 bg-white shadow-2xl shadow-violet-500/10 ring-1 ring-white/10"
     />,
   );

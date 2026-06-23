@@ -16,6 +16,8 @@ type LandingViewProps = {
   onTemplate: (template: Template) => void;
   selectedId?: string | null;
   error?: string | null;
+  isTelegram?: boolean;
+  onOpenExternal?: () => void;
 };
 
 export function LandingView({
@@ -25,9 +27,32 @@ export function LandingView({
   onTemplate,
   selectedId,
   error,
+  isTelegram = false,
+  onOpenExternal,
 }: LandingViewProps) {
   return (
     <div className="landing-page mx-auto w-full max-w-5xl px-4 pb-16 pt-6 sm:px-6 sm:pt-10">
+      {isTelegram && (
+        <div className="landing-fade mb-6 flex flex-col gap-3 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-violet-100">
+              Вы в Telegram — шаблоны работают прямо здесь
+            </p>
+            <p className="mt-0.5 text-xs text-violet-200/70">
+              Чтобы сохранить HTML в Файлы — откройте сайт в Safari или Chrome
+            </p>
+          </div>
+          {onOpenExternal && (
+            <button
+              type="button"
+              onClick={onOpenExternal}
+              className="shrink-0 rounded-xl bg-violet-500 px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              🌐 Открыть в браузере
+            </button>
+          )}
+        </div>
+      )}
       <nav className="landing-fade mb-10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg shadow-lg shadow-violet-500/30">

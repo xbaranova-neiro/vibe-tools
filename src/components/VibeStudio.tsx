@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { AppFullscreen } from "@/components/AppFullscreen";
 import { ChatPanel } from "@/components/ChatPanel";
 import { GenerationTheater } from "@/components/GenerationTheater";
 import { LandingView } from "@/components/LandingView";
+import { MobileSaveActions } from "@/components/MobileSaveActions";
 import { PreviewFrame } from "@/components/PreviewFrame";
 import { Toolbar } from "@/components/Toolbar";
+import { useTelegram } from "@/components/TelegramProvider";
 import {
   getCreationScript,
   waitForTheater,
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
-import {
-  openHtmlInNewTab,
-  saveHtmlToDevice,
-} from "@/lib/prepare-html-for-preview";
+import { isIosDevice } from "@/lib/html-payload";
 import { applyThemeToHtml } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -83,6 +83,14 @@ function countLines(html: string): number {
 }
 
 export function VibeStudio() {
+  const {
+    isTelegram,
+    fullscreenHtml,
+    openFullscreen,
+    closeFullscreen,
+    openExternal,
+  } = useTelegram();
+
   const [phase, setPhase] = useState<Phase>("landing");
   const [prompt, setPrompt] = useState("");
   const [html, setHtml] = useState<string | null>(null);
@@ -381,12 +389,22 @@ export function VibeStudio() {
         onTemplate={handleTemplateAndCreate}
         selectedId={selectedTemplate}
         error={error}
+        isTelegram={isTelegram}
+        onOpenExternal={openExternal}
       />
     );
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 pb-24 sm:px-6 lg:pb-6">
+    <>
+      {fullscreenHtml && (
+        <AppFullscreen
+          html={fullscreenHtml}
+          onClose={closeFullscreen}
+          onOpenExternal={openExternal}
+        />
+      )}
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 pb-24 sm:px-6 lg:pb-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -398,10 +416,21 @@ export function VibeStudio() {
             )}
           </div>
           <p className="text-sm text-white/50">
-            Сохраните HTML на телефон — потом откроется без интернета
+            {isTelegram
+              ? "Нажмите «Пользоваться» — приложение откроется на весь экран"
+              : isIosDevice()
+                ? "iPhone: «На экран Домой» → Safari → Поделиться → Добавить"
+                : "Сохраните HTML в Файлы — откроется офлайн"}
           </p>
         </div>
-        <Toolbar html={html} title={title} onReset={handleReset} />
+        <Toolbar
+          html={html}
+          title={title}
+          onReset={handleReset}
+          isTelegram={isTelegram}
+          onOpenFullscreen={openFullscreen}
+          onOpenExternal={openExternal}
+        />
       </header>
 
       {error && (
@@ -412,7 +441,16 @@ export function VibeStudio() {
 
       <div className="grid min-h-0 grid-cols-1 gap-4 lg:min-h-[520px] lg:grid-cols-2">
         <div className={justRevealed ? "reveal-app reveal-glow order-1 rounded-2xl lg:order-2" : "order-1 lg:order-2"}>
-          <PreviewFrame html={html} title={title} loading={loading} revision={revision} />
+          <PreviewFrame
+            html={html}
+            title={title}
+            loading={loading}
+            revision={revision}
+            useSrcDoc={isTelegram}
+            isTelegram={isTelegram}
+            onOpenFullscreen={openFullscreen}
+            onOpenExternal={openExternal}
+          />
         </div>
         <div className="order-2 lg:order-1">
           <ChatPanel
@@ -426,23 +464,17 @@ export function VibeStudio() {
       </div>
 
       {html && (
-        <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            onClick={() => void saveHtmlToDevice(html, title)}
-            className="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25"
-          >
-            💾 Сохранить
-          </button>
-          <button
-            type="button"
-            onClick={() => openHtmlInNewTab(html, { includeSaveBar: true })}
-            className="flex-1 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30"
-          >
-            ↗ Открыть
-          </button>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <MobileSaveActions
+            html={html}
+            title={title}
+            isTelegram={isTelegram}
+            onOpenFullscreen={openFullscreen}
+            onOpenExternal={openExternal}
+          />
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
