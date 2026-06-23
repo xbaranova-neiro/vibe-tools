@@ -121,6 +121,8 @@ export function VibeStudio() {
   const pendingHtmlRef = useRef<string | null>(null);
   const apiPromiseRef = useRef<Promise<string | null> | null>(null);
   const creationErrorRef = useRef<string | null>(null);
+  const generateAbortRef = useRef<AbortController | null>(null);
+  const userCancelledRef = useRef(false);
   const isTelegramRef = useRef(isTelegram);
 
   useEffect(() => {
@@ -257,6 +259,12 @@ export function VibeStudio() {
 
       const history = existingHtml ? messages : undefined;
 
+      generateAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      generateAbortRef.current = ctrl;
+      const timeoutMs = existingHtml ? 90_000 : 120_000;
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+
       try {
         const res = await fetch("/api/generate", {
           method: "POST",
@@ -267,6 +275,7 @@ export function VibeStudio() {
             history,
             themePrompt,
           }),
+          signal: ctrl.signal,
         });
 
         const data = (await res.json()) as {
@@ -317,7 +326,16 @@ export function VibeStudio() {
       } catch (err) {
         let message =
           err instanceof Error ? err.message : "Не удалось сгенерировать";
-        if (isLikelyNetworkError(err)) {
+        if (userCancelledRef.current) {
+          message =
+            "Генерация отменена. Выберите готовый шаблон — он собирается сразу, без AI.";
+        } else if (
+          err instanceof DOMException &&
+          err.name === "AbortError"
+        ) {
+          message =
+            "Сервер не ответил за 2 минуты. Без VPN Vercel часто недоступен — выберите шаблон или включите VPN.";
+        } else if (isLikelyNetworkError(err)) {
           message = networkErrorMessage();
         } else if (
           message.includes("Failed to fetch") ||
@@ -332,6 +350,10 @@ export function VibeStudio() {
         }
         return null;
       } finally {
+        clearTimeout(timer);
+        if (generateAbortRef.current === ctrl) {
+          generateAbortRef.current = null;
+        }
         setLoading(false);
       }
     },
@@ -417,6 +439,7 @@ export function VibeStudio() {
     setError(null);
     setAiReady(false);
     creationErrorRef.current = null;
+    userCancelledRef.current = false;
     setCreationMeta(meta);
 
     if (rawPrebuilt) {
@@ -439,16 +462,25 @@ export function VibeStudio() {
         enrichCustomPrompt(meta.prompt),
         undefined,
         meta.themePrompt,
-      ).then((result) => {
-        if (result) {
-          pendingHtmlRef.current = result;
+      )
+        .then((result) => {
+          if (result) pendingHtmlRef.current = result;
+          return result;
+        })
+        .finally(() => {
           setAiReady(true);
-        }
-        return result;
-      });
+        });
     } else {
       setAiReady(true);
     }
+  };
+
+  const cancelCreation = () => {
+    userCancelledRef.current = true;
+    creationErrorRef.current =
+      "Генерация отменена. Выберите готовый шаблон — он собирается сразу, без AI.";
+    generateAbortRef.current?.abort();
+    setAiReady(true);
   };
 
   const handleCreate = () => {
@@ -548,6 +580,7 @@ export function VibeStudio() {
           script={getCreationScript(creationMeta.templateId)}
           aiGeneration={!creationMeta.templateId}
           aiReady={aiReady}
+          onCancel={!creationMeta.templateId ? cancelCreation : undefined}
           onComplete={() => void handleTheaterComplete()}
         />
       </>

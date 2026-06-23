@@ -12,6 +12,7 @@ type GenerationTheaterProps = {
   aiGeneration?: boolean;
   aiReady?: boolean;
   onComplete?: () => void;
+  onCancel?: () => void;
 };
 
 export function GenerationTheater({
@@ -22,6 +23,7 @@ export function GenerationTheater({
   aiGeneration = false,
   aiReady = false,
   onComplete,
+  onCancel,
 }: GenerationTheaterProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [codeIndex, setCodeIndex] = useState(0);
@@ -98,7 +100,7 @@ export function GenerationTheater({
         <div className="absolute bottom-1/4 right-1/4 h-32 w-32 rounded-full bg-fuchsia-600/15 blur-3xl animate-pulse sm:h-48 sm:w-48" />
       </div>
 
-      <div className="safe-top safe-bottom safe-x relative w-full max-w-lg animate-[fadeUp_.4s_ease-out] py-4 sm:py-0">
+      <div className="safe-top safe-bottom safe-x pointer-events-auto relative w-full max-w-lg animate-[fadeUp_.4s_ease-out] py-4 sm:py-0">
         <div className="mb-3 text-center sm:mb-4">
           <div className="mb-1.5 text-3xl sm:mb-2 sm:text-4xl">{emoji}</div>
           <h2 className="text-lg font-bold text-white sm:text-xl">
@@ -110,7 +112,9 @@ export function GenerationTheater({
           </h2>
           {waitingForAi && (
             <p className="mt-1.5 text-xs text-white/45 sm:mt-2">
-              Обычно 15–40 сек
+              {elapsed > 50
+                ? "Долго ждём — возможно, сервер недоступен без VPN"
+                : "Обычно 15–40 сек"}
             </p>
           )}
           <p className="mt-1 text-sm text-white/50">{title}</p>
@@ -187,6 +191,15 @@ export function GenerationTheater({
               }}
             />
           </div>
+          {waitingForAi && onCancel && elapsed > 12 && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="pointer-events-auto mt-3 w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10"
+            >
+              Отмена · выбрать шаблон
+            </button>
+          )}
         </div>
       </div>
     </div>
