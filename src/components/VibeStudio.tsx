@@ -101,12 +101,14 @@ export function VibeStudio() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [creationMeta, setCreationMeta] = useState<CreationMeta | null>(null);
+  const [aiReady, setAiReady] = useState(false);
   const [createdIn, setCreatedIn] = useState<string | null>(null);
   const [justRevealed, setJustRevealed] = useState(false);
 
   const htmlRef = useRef(html);
   const pendingHtmlRef = useRef<string | null>(null);
   const apiPromiseRef = useRef<Promise<string | null> | null>(null);
+  const creationErrorRef = useRef<string | null>(null);
   const isTelegramRef = useRef(isTelegram);
 
   useEffect(() => {
@@ -198,6 +200,8 @@ export function VibeStudio() {
               { role: "user", content: userPrompt },
               { role: "assistant", content: failMessage },
             ]);
+          } else {
+            creationErrorRef.current = failMessage;
           }
           throw new Error(failMessage);
         }
@@ -228,9 +232,21 @@ export function VibeStudio() {
 
         return data.html;
       } catch (err) {
-        const message =
+        let message =
           err instanceof Error ? err.message : "Не удалось сгенерировать";
-        setError(message);
+        if (
+          err instanceof TypeError ||
+          message.includes("Failed to fetch") ||
+          message.includes("NetworkError")
+        ) {
+          message =
+            "Сервер не ответил вовремя (генерация занимает до минуты). Попробуйте готовый шаблон — он собирается мгновенно.";
+        }
+        if (existingHtml) {
+          setError(message);
+        } else {
+          creationErrorRef.current = message;
+        }
         return null;
       } finally {
         setLoading(false);
@@ -256,9 +272,17 @@ export function VibeStudio() {
 
     if (!resultHtml) {
       setPhase("landing");
-      setError("Не удалось создать приложение");
+      setAiReady(false);
+      setError(
+        creationErrorRef.current ??
+          "Не удалось создать приложение. Попробуйте шаблон или короче опишите идею.",
+      );
+      creationErrorRef.current = null;
       return;
     }
+
+    creationErrorRef.current = null;
+    setAiReady(false);
 
     finishCreation(resultHtml, meta);
   }, [creationMeta, finishCreation]);
@@ -298,6 +322,8 @@ export function VibeStudio() {
     };
 
     setError(null);
+    setAiReady(false);
+    creationErrorRef.current = null;
     setCreationMeta(meta);
 
     if (rawPrebuilt) {
@@ -320,7 +346,15 @@ export function VibeStudio() {
         enrichCustomPrompt(meta.prompt),
         undefined,
         meta.themePrompt,
-      );
+      ).then((result) => {
+        if (result) {
+          pendingHtmlRef.current = result;
+          setAiReady(true);
+        }
+        return result;
+      });
+    } else {
+      setAiReady(true);
     }
   };
 
@@ -389,6 +423,7 @@ export function VibeStudio() {
           userPrompt={creationMeta.prompt}
           script={getCreationScript(creationMeta.templateId)}
           aiGeneration={!creationMeta.templateId}
+          aiReady={aiReady}
           onComplete={() => void handleTheaterComplete()}
         />
       </>

@@ -22,6 +22,8 @@ const openai = new OpenAI({
 });
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
+const OPENAI_CREATE_MODEL =
+  process.env.OPENAI_CREATE_MODEL?.trim() || "gpt-4o-mini";
 
 async function generateChatReply(
   prompt: string,
@@ -109,7 +111,7 @@ export async function POST(request: Request) {
     }
 
     const completion = await openai.chat.completions.create({
-      model: OPENAI_MODEL,
+      model: isRefinement ? OPENAI_MODEL : OPENAI_CREATE_MODEL,
       messages: [
         {
           role: "system",
@@ -128,7 +130,7 @@ export async function POST(request: Request) {
         },
       ],
       temperature: isRefinement ? 0.85 : 0.65,
-      max_tokens: isRefinement ? 12000 : 8000,
+      max_tokens: isRefinement ? 12000 : 5500,
     });
 
     const choice = completion.choices[0];

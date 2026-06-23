@@ -10,6 +10,7 @@ type GenerationTheaterProps = {
   userPrompt: string;
   script: CreationScript;
   aiGeneration?: boolean;
+  aiReady?: boolean;
   onComplete?: () => void;
 };
 
@@ -19,6 +20,7 @@ export function GenerationTheater({
   userPrompt,
   script,
   aiGeneration = false,
+  aiReady = false,
   onComplete,
 }: GenerationTheaterProps) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -26,7 +28,7 @@ export function GenerationTheater({
   const [typedCode, setTypedCode] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
-  const waitingForAi = aiGeneration && done;
+  const waitingForAi = aiGeneration && !aiReady;
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export function GenerationTheater({
       stepIndex >= script.steps.length - 1 &&
       codeIndex >= script.codeLines.length
     ) {
+      if (aiGeneration && !aiReady) return;
       const t = setTimeout(() => {
         if (completedRef.current) return;
         completedRef.current = true;
@@ -86,7 +89,7 @@ export function GenerationTheater({
       }, 450);
       return () => clearTimeout(t);
     }
-  }, [stepIndex, codeIndex, script, onComplete]);
+  }, [stepIndex, codeIndex, script, onComplete, aiGeneration, aiReady]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-[#07070f]/95 backdrop-blur-md sm:items-center">
