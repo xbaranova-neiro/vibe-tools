@@ -18,6 +18,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
+
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
@@ -58,7 +60,7 @@ export async function POST(request: Request) {
     const isRefinement = Boolean(body.existingHtml);
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: OPENAI_MODEL,
       messages: [
         {
           role: "system",
