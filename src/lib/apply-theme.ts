@@ -104,4 +104,16 @@ export function applyThemeToHtml(
   return result;
 }
 
+/** Тема + анимации для AI-сгенерированных приложений (как у шаблонов). */
+export function polishGeneratedApp(
+  html: string,
+  theme: VibeTheme,
+  extras: ThemeExtras,
+  variation: AppVariation,
+): string {
+  let result = applyThemeToHtml(html, theme, extras, variation, null, null);
+  result = applyVisualPolish(result, "custom");
+  return result;
+}
+
 export type { DomainFlavor };

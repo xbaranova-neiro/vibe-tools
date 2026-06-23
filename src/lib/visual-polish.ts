@@ -24,6 +24,14 @@ input:focus,select:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--vibe-accen
 `;
 
 const TEMPLATE_POLISH: Record<string, string> = {
+  custom: `
+.streak,.progress-box,.stat{border-radius:12px!important}
+.progress-box,.streak{background:rgba(255,255,255,.12)!important;padding:10px 14px!important;margin-bottom:14px!important}
+.sub{opacity:.85!important;font-size:.9rem!important;text-align:center!important;margin-bottom:18px!important}
+.list .item,.task,.row{border-radius:12px!important;background:rgba(255,255,255,.08)!important;padding:12px 14px!important;margin-bottom:8px!important;border:1px solid rgba(255,255,255,.1)!important}
+#list,#items,.tasks{display:flex;flex-direction:column;gap:8px}
+.bar,.progress-bar{height:12px!important;background:rgba(0,0,0,.22)!important;border-radius:99px!important;overflow:hidden!important;margin:12px 0!important}
+`,
   budget: `
 .chart:not(.empty){animation:chartSpin .8s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes chartSpin{from{transform:rotate(-90deg) scale(.5);opacity:0}to{transform:none;opacity:1}}

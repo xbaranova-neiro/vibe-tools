@@ -23,7 +23,7 @@ const openai = new OpenAI({
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
 const OPENAI_CREATE_MODEL =
-  process.env.OPENAI_CREATE_MODEL?.trim() || "gpt-4o-mini";
+  process.env.OPENAI_CREATE_MODEL?.trim() || "gpt-4.1-mini";
 
 async function generateChatReply(
   prompt: string,

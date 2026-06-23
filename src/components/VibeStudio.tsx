@@ -16,7 +16,7 @@ import {
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
 import { canInstallToHomeScreen, getMobilePlatform } from "@/lib/html-payload";
-import { applyThemeToHtml } from "@/lib/apply-theme";
+import { applyThemeToHtml, polishGeneratedApp } from "@/lib/apply-theme";
 import {
   pickAppVariation,
   variationToPrompt,
@@ -48,6 +48,9 @@ type CreationMeta = {
   templateId: string | null;
   startTime: number;
   themePrompt: string;
+  _theme?: ReturnType<typeof pickRandomTheme>["theme"];
+  _extras?: ReturnType<typeof pickRandomTheme>["extras"];
+  _variation?: AppVariation;
 };
 
 let cachedSession: SessionData | null | undefined;
@@ -284,7 +287,17 @@ export function VibeStudio() {
     creationErrorRef.current = null;
     setAiReady(false);
 
-    finishCreation(resultHtml, meta);
+    let finalHtml = resultHtml;
+    if (!meta.templateId && meta._theme && meta._extras && meta._variation) {
+      finalHtml = polishGeneratedApp(
+        resultHtml,
+        meta._theme,
+        meta._extras,
+        meta._variation,
+      );
+    }
+
+    finishCreation(finalHtml, meta);
   }, [creationMeta, finishCreation]);
 
   const buildCreationMeta = (
