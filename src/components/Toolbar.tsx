@@ -9,6 +9,11 @@ type ToolbarProps = {
 };
 
 export function Toolbar({ html, title, onReset }: ToolbarProps) {
+  const openApp = () => {
+    if (!html) return;
+    openHtmlInNewTab(html);
+  };
+
   const downloadHtml = () => {
     if (!html) return;
     const prepared = prepareHtmlForPreview(html);
@@ -33,6 +38,14 @@ export function Toolbar({ html, title, onReset }: ToolbarProps) {
     <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
+        onClick={openApp}
+        disabled={!html}
+        className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        ↗ Открыть приложение
+      </button>
+      <button
+        type="button"
         onClick={downloadHtml}
         disabled={!html}
         className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
@@ -47,8 +60,8 @@ export function Toolbar({ html, title, onReset }: ToolbarProps) {
         🔄 Начать заново
       </button>
       {html && (
-        <span className="ml-auto text-xs text-white/40">
-          Данные хранятся в браузере · скачайте HTML, чтобы не потерять
+        <span className="hidden text-xs text-white/40 xl:inline">
+          Данные в браузере · скачайте HTML, чтобы не потерять
         </span>
       )}
     </div>

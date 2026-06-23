@@ -53,14 +53,14 @@ export function PreviewFrame({ html, loading, revision = 0 }: PreviewFrameProps)
   const frameShell = (frame: React.ReactNode) => (
     <div className="flex h-[min(75vh,640px)] min-h-[460px] w-full flex-col gap-2">
       {html && (
-        <div className="flex items-center justify-between gap-2 px-1">
-          <p className="text-xs text-white/45 lg:hidden">
-            На телефоне удобнее открыть отдельно ↗
+        <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center text-xs text-white/50 sm:text-left">
+            На телефоне нажмите кнопку ниже или внизу экрана
           </p>
           <button
             type="button"
             onClick={openFullscreen}
-            className="ml-auto shrink-0 rounded-lg border border-violet-400/30 bg-violet-500/15 px-3 py-1.5 text-xs font-medium text-violet-100 transition hover:bg-violet-500/25"
+            className="w-full shrink-0 rounded-xl border border-violet-400/40 bg-violet-500/20 px-4 py-2.5 text-sm font-semibold text-violet-50 transition hover:bg-violet-500/30 sm:ml-auto sm:w-auto"
           >
             ↗ Открыть приложение
           </button>

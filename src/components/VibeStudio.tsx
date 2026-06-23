@@ -12,6 +12,7 @@ import {
   waitForTheater,
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
+import { openHtmlInNewTab } from "@/lib/prepare-html-for-preview";
 import { applyThemeToHtml } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -382,7 +383,7 @@ export function VibeStudio() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 pb-24 sm:px-6 lg:pb-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -420,6 +421,18 @@ export function VibeStudio() {
           />
         </div>
       </div>
+
+      {html && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button
+            type="button"
+            onClick={() => openHtmlInNewTab(html)}
+            className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/30"
+          >
+            ↗ Открыть приложение
+          </button>
+        </div>
+      )}
     </div>
   );
 }
