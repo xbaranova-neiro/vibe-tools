@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0b12;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +12,178 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes revealApp {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 40px 8px rgba(139, 92, 246, 0.25);
+  }
+}
+
+@keyframes templateCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.template-card {
+  animation: templateCardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #a78bfa 0%,
+    #f0abfc 40%,
+    #67e8f9 60%,
+    #a78bfa 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+.reveal-app {
+  animation: revealApp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.reveal-glow {
+  animation: glowPulse 1.2s ease-out 2;
+}
+
+/* Landing page */
+.landing-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 70%);
+}
+
+.landing-fade {
+  animation: landingFadeUp 0.65s ease-out both;
+}
+
+.landing-fade-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.landing-fade-delay-2 {
+  animation-delay: 0.16s;
+}
+
+.landing-fade-delay-3 {
+  animation-delay: 0.24s;
+}
+
+.landing-fade-delay-4 {
+  animation-delay: 0.32s;
+}
+
+@keyframes landingFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-prompt-glow {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.45),
+    rgba(217, 70, 239, 0.25),
+    rgba(34, 211, 238, 0.2)
+  );
+}
+
+.landing-mock-card {
+  animation: mockFloat 5s ease-in-out infinite;
+}
+
+@keyframes mockFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.landing-cursor {
+  animation: cursorBlink 1s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-fade,
+  .template-card,
+  .landing-mock-card,
+  .text-shimmer {
+    animation: none !important;
+  }
+
+  .landing-mock-card {
+    transform: none !important;
+  }
 }

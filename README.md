@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vibe Tools
 
-## Getting Started
+Песочница вайб-кодинга: опиши идею — получи готовое HTML-мини-приложение.
 
-First, run the development server:
+## Запуск
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открой [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Тесты
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run test:lib          # unit-тесты парсера HTML
+TEST_BASE_URL=http://localhost:3010 npm run test:api  # API + генерация
+npm run lint
+npm run build
+```
 
-## Learn More
+## Настройка
 
-To learn more about Next.js, take a look at the following resources:
+Создай `.env.local`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+OPENAI_API_KEY=sk-...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Возможности
 
-## Deploy on Vercel
+- 5 шаблонов (бюджет, привычки, задачи, кружки, покупки)
+- Свободный промпт
+- Превью в sandbox iframe
+- Доработка промптом
+- Скачивание `.html`
+- Сохранение сессии в `sessionStorage`
+- Rate limit: 10 генераций в час на IP
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Деплой
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Timeweb Cloud App Platform
+
+Проект использует API (`/api/generate`), поэтому нужен **Next.js с SSR**, не статический экспорт.
+
+1. Залей код в GitHub (репозиторий `vibe-tools`).
+2. [Timeweb Cloud](https://timeweb.cloud/my) → **App Platform** → **Создать** → **Next.js**.
+3. Подключи GitHub-репозиторий, ветка `main`.
+4. Включи **SSR** (иначе API не заработает).
+5. Node.js **20** или **22**.
+6. Команды (обычно подставляются сами):
+   - сборка: `npm run build`
+   - запуск: `npm start`
+7. Переменные окружения → добавь `OPENAI_API_KEY`.
+8. **Запустить деплой** → скопируй технический домен с вкладки «Дашборд».
+
+### Vercel
+
+```bash
+npm run build
+```
+
+Добавь переменную `OPENAI_API_KEY` в настройках проекта.
+
+## Стоимость
+
+~0.3–0.7 ₽ за генерацию (GPT-4o mini)
