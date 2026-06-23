@@ -33,12 +33,12 @@ export function ChatPanel({
   return (
     <div className="flex max-h-[38dvh] min-h-[200px] flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 sm:max-h-[42dvh] sm:min-h-[240px] lg:max-h-none lg:min-h-[520px] lg:h-full">
       <div className="shrink-0 border-b border-white/10 px-3 py-2.5 sm:px-4 sm:py-3">
-        <h3 className="text-sm font-semibold text-white">Доработка</h3>
+        <h3 className="text-sm font-semibold text-white">Чат</h3>
         <p className="text-xs text-white/50">
           {isInitialGeneration
             ? "ИИ создаёт первую версию…"
             : hasHtml
-              ? "Опишите что изменить"
+              ? "Команда на изменение или вопрос по приложению"
               : "Сначала создайте приложение"}
         </p>
       </div>
@@ -46,7 +46,7 @@ export function ChatPanel({
       <div className="mobile-scroll min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3 sm:space-y-3 sm:p-4">
         {messages.length === 0 && (
           <p className="text-sm text-white/40">
-            «Добавь тёмную тему» · «Сделай крупнее кнопки»
+            «Добавь тёмную тему» · «Как сохранить на телефон?»
           </p>
         )}
         {messages.map((msg, i) => (
@@ -63,7 +63,7 @@ export function ChatPanel({
         ))}
         {loading && (
           <div className="mr-auto max-w-[95%] rounded-xl bg-white/10 px-3 py-2 text-sm text-white/60">
-            Генерирую…
+            {hasHtml ? "Отвечаю…" : "Генерирую…"}
           </div>
         )}
       </div>
@@ -77,7 +77,7 @@ export function ChatPanel({
             name="refine"
             type="text"
             disabled={!hasHtml || loading}
-            placeholder="Добавь график…"
+            placeholder="Добавь… или спросите"
             className="touch-target flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-white placeholder:text-white/30 outline-none focus:border-violet-400 disabled:opacity-40 sm:text-sm"
           />
           <button

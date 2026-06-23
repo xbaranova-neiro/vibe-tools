@@ -186,6 +186,7 @@ export function VibeStudio() {
 
         const data = (await res.json()) as {
           html?: string;
+          reply?: string;
           error?: string;
         };
 
@@ -199,6 +200,15 @@ export function VibeStudio() {
             ]);
           }
           throw new Error(failMessage);
+        }
+
+        if (data.reply && !data.html) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "user", content: userPrompt },
+            { role: "assistant", content: data.reply! },
+          ]);
+          return null;
         }
 
         if (!data.html) throw new Error("Пустой ответ от сервера");

@@ -2,8 +2,11 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
 import { extractHtml, isValidGeneratedHtml, sanitizeHtml } from "@/lib/extract-html";
+import { extractAppHint, isClearRefineRequest } from "@/lib/chat-intent";
 import {
+  buildChatReplyMessage,
   buildUserMessage,
+  CHAT_REPLY_PROMPT,
   htmlChanged,
   REFINEMENT_PROMPT,
   SYSTEM_PROMPT,
@@ -19,6 +22,32 @@ const openai = new OpenAI({
 });
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
+
+async function generateChatReply(
+  prompt: string,
+  existingHtml: string,
+  history?: ChatTurn[],
+): Promise<string | null> {
+  const completion = await openai.chat.completions.create({
+    model: OPENAI_MODEL,
+    messages: [
+      { role: "system", content: CHAT_REPLY_PROMPT },
+      {
+        role: "user",
+        content: buildChatReplyMessage(
+          prompt,
+          extractAppHint(existingHtml),
+          history,
+        ),
+      },
+    ],
+    temperature: 0.65,
+    max_tokens: 350,
+  });
+
+  const reply = completion.choices[0]?.message?.content?.trim();
+  return reply || null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -58,6 +87,26 @@ export async function POST(request: Request) {
     }
 
     const isRefinement = Boolean(body.existingHtml);
+
+    if (isRefinement && body.existingHtml && !isClearRefineRequest(prompt)) {
+      const reply = await generateChatReply(
+        prompt,
+        body.existingHtml,
+        body.history,
+      );
+
+      if (!reply) {
+        return NextResponse.json(
+          { error: "Не удалось ответить. Попробуйте переформулировать." },
+          { status: 502 },
+        );
+      }
+
+      return NextResponse.json({
+        reply,
+        remaining: limit.remaining,
+      });
+    }
 
     const completion = await openai.chat.completions.create({
       model: OPENAI_MODEL,
