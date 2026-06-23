@@ -1,3 +1,5 @@
+import { pillsRuntimeScript } from "./pills-shared";
+
 export const pillsHtml = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,120 +8,98 @@ export const pillsHtml = `<!DOCTYPE html>
 <title>Витамины</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:linear-gradient(145deg,#134e4a,#0f766e);min-height:100vh;padding:22px 16px;color:#fff}
-.card{max-width:420px;margin:0 auto}
-h1{text-align:center;font-size:1.5rem;margin-bottom:4px}
-.sub{text-align:center;opacity:.8;font-size:.85rem;margin-bottom:14px}
-.alert{text-align:center;padding:12px 14px;border-radius:14px;margin-bottom:16px;font-weight:600;font-size:.9rem;transition:all .3s}
-.alert.ok{background:rgba(74,222,128,.2);color:#86efac;border:1px solid rgba(74,222,128,.3)}
-.alert.warn{background:rgba(251,191,36,.2);color:#fde68a;border:1px solid rgba(251,191,36,.35);animation:alertPulse 2s infinite}
-@keyframes alertPulse{0%,100%{box-shadow:0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 20px rgba(251,191,36,.25)}}
-.progress-box{background:rgba(255,255,255,.1);border-radius:16px;padding:14px;margin-bottom:16px}
-.progress-label{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:8px}
-.progress-bar{height:12px;background:rgba(0,0,0,.2);border-radius:99px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,#2dd4bf,#5eead4);width:0;border-radius:99px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
-.section{margin-bottom:18px}
-.section-hdr{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.75;margin-bottom:10px}
-.med{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,255,255,.08);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all .25s}
-.med.taken{opacity:.55;background:rgba(74,222,128,.12)}
-.med-emoji{font-size:1.8rem;line-height:1}
-.med-info{flex:1}
-.med-info .name{font-weight:600;font-size:1rem}
-.med-info .hint{font-size:.75rem;opacity:.6;margin-top:2px}
-.med-check{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .3s}
-.med.taken .med-check{background:#2dd4bf;border-color:#2dd4bf;color:#134e4a}
-.med .del{margin-left:4px;background:none;border:none;color:#fca5a5;font-size:1.1rem;cursor:pointer;padding:4px}
-.form{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-input,select{padding:11px;border-radius:12px;border:none;font-size:.95rem}
-input{flex:1;min-width:100px}
-select{background:#fff}
-.btn,.btn-add{width:100%;padding:12px;background:#2dd4bf;color:#134e4a;border:none;border-radius:12px;font-weight:700;cursor:pointer}
-.celebrate{text-align:center;padding:14px;border-radius:14px;background:rgba(74,222,128,.15);color:#86efac;font-weight:700;display:none;margin-bottom:12px}
-.celebrate.show{display:block;animation:pop .4s}
-@keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#0f766e 0%,#134e4a 45%,#042f2e 100%);min-height:100vh;padding:20px 16px 28px;color:#fff}
+.card{max-width:420px;margin:0 auto;position:relative}
+.hero{text-align:center;margin-bottom:16px}
+.hero h1{font-size:1.55rem;font-weight:800;letter-spacing:-.02em}
+.hero .sub{margin-top:4px;font-size:.85rem;opacity:.75}
+.ring-wrap{display:flex;justify-content:center;margin:8px 0 18px}
+.ring-box{position:relative;width:132px;height:132px}
+.ring-box svg{transform:rotate(-90deg);width:132px;height:132px}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.12);stroke-width:10}
+.ring-fg{fill:none;stroke:url(#ringGrad);stroke-width:10;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset .65s cubic-bezier(.34,1.56,.64,1)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:1.75rem;font-weight:800;line-height:1}
+.ring-sub{font-size:.72rem;opacity:.65;margin-top:2px}
+.alert{text-align:center;padding:11px 14px;border-radius:14px;margin-bottom:14px;font-weight:600;font-size:.88rem;transition:all .25s}
+.alert.ok{background:rgba(45,212,191,.18);color:#99f6e4;border:1px solid rgba(45,212,191,.25)}
+.alert.warn{background:rgba(251,191,36,.18);color:#fde68a;border:1px solid rgba(251,191,36,.3)}
+.section{margin-bottom:16px}
+.section-hdr{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.65;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.med{display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);border-radius:16px;margin-bottom:8px;cursor:pointer;transition:transform .15s,background .2s,opacity .2s}
+.med:active{transform:scale(.98)}
+.med.taken{opacity:.62;background:rgba(45,212,191,.12);border-color:rgba(45,212,191,.2)}
+.med-emoji{font-size:1.65rem;line-height:1;flex-shrink:0}
+.med-info{flex:1;min-width:0}
+.med-info .name{font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.med-info .hint{font-size:.72rem;opacity:.55;margin-top:2px}
+.med-check{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;transition:all .25s}
+.med.taken .med-check{background:var(--vibe-accent,#2dd4bf);border-color:var(--vibe-accent,#2dd4bf);color:#042f2e}
+.med .del{background:rgba(0,0,0,.15);border:none;border-radius:10px;color:#fca5a5;font-size:1rem;cursor:pointer;padding:6px 10px;flex-shrink:0;line-height:1}
+.empty{opacity:.4;font-size:.82rem;padding:6px 0}
+.add-box{margin-top:18px;padding:14px;border-radius:18px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
+.add-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.55;margin-bottom:10px}
+#addForm{display:flex;flex-direction:column;gap:8px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+input,select{padding:12px 13px;border-radius:12px;border:none;font-size:.95rem;font-family:inherit}
+input{flex:1;min-width:0;width:100%}
+input.shake{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+select{background:#fff;color:#134e4a;flex:1;min-width:120px}
+.btn-add{width:100%;padding:14px;border:none;border-radius:14px;background:var(--vibe-accent,#2dd4bf);color:var(--vibe-accent-text,#042f2e);font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(45,212,191,.25)}
+.btn-add:active{transform:scale(.98)}
+.celebrate{text-align:center;padding:12px;border-radius:14px;background:rgba(45,212,191,.15);color:#99f6e4;font-weight:700;display:none;margin-bottom:12px}
+.celebrate.show{display:block;animation:pop .45s ease-out}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
-<div class="card" id="card">
+<div class="card">
+<div class="hero">
 <h1>💊 Витамины</h1>
 <p class="sub">Утро и вечер — ничего не забыть</p>
-<div class="alert ok" id="alert">✨ Загрузка…</div>
-<div class="progress-box">
-<div class="progress-label"><span>Сегодня принято</span><span id="progText">0 / 0</span></div>
-<div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
 </div>
+<div class="alert ok" id="alert">➕ Добавьте первый витамин</div>
 <div class="celebrate" id="celebrate">🎉 Все витамины на сегодня!</div>
+<div class="ring-wrap">
+<div class="ring-box">
+<svg viewBox="0 0 120 120" aria-hidden="true">
+<defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="var(--vibe-accent,#2dd4bf)"/><stop offset="100%" stop-color="var(--vibe-accent-light,#5eead4)"/></linearGradient></defs>
+<circle class="ring-bg" cx="60" cy="60" r="52"/>
+<circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"/>
+</svg>
+<div class="ring-center">
+<div class="ring-pct" id="ringPct">0%</div>
+<div class="ring-sub" id="ringSub">0 / 0</div>
+</div>
+</div>
+</div>
 <div class="section"><div class="section-hdr">🌅 Утро</div><div id="morning"></div></div>
 <div class="section"><div class="section-hdr">🌙 Вечер</div><div id="evening"></div></div>
-<div class="form">
-<input id="name" placeholder="Название (Омега-3…)">
+<div class="add-box">
+<div class="add-label">Новый витамин</div>
+<form id="addForm">
+<input id="name" type="text" placeholder="Омега-3, D3, магний…" autocomplete="off">
+<div class="form-row">
 <select id="when"><option value="both">🌅+🌙 Утро и вечер</option><option value="morning">🌅 Только утро</option><option value="evening">🌙 Только вечер</option></select>
 <select id="emoji"><option value="💊">💊 Таблетка</option><option value="☀️">☀️ D3</option><option value="🐟">🐟 Омега</option><option value="🍊">🍊 Витамин C</option><option value="🧪">🧪 Другое</option></select>
 </div>
-<button type="button" class="btn-add" id="addBtn">+ Добавить</button>
+<button type="submit" class="btn-add" id="addBtn">+ Добавить витамин</button>
+</form>
+</div>
 </div>
 <script>
-const KEY='vibe-pills';
-function today(){return new Date().toISOString().slice(0,10)}
-function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{"date":"","meds":[]}')}catch{return {date:'',meds:[]}}}
-function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
-function ensureToday(d){if(d.date===today())return d;const meds=(d.meds||[]).map(m=>({...m,m:false,e:false}));return {date:today(),meds}}
-function slots(m){if(m.when==='morning')return ['morning'];if(m.when==='evening')return ['evening'];return ['morning','evening']}
-function totalDoses(meds){return meds.reduce((a,m)=>a+slots(m).length,0)}
-function takenDoses(meds){return meds.reduce((a,m)=>a+(m.m?1:0)+(m.e?1:0),0)}
-function render(){
-  let d=ensureToday(load());save(d);
-  const meds=d.meds||[];
-  const total=totalDoses(meds);const taken=takenDoses(meds);
-  const pct=total?Math.round(taken/total*100):0;
-  document.getElementById('progText').textContent=taken+' / '+total;
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('celebrate').classList.toggle('show',total>0&&taken===total);
-  const hour=new Date().getHours();
-  const alert=document.getElementById('alert');
-  let pendingM=meds.filter(m=>slots(m).includes('morning')&&!m.m);
-  let pendingE=meds.filter(m=>slots(m).includes('evening')&&!m.e);
-  if(!meds.length){alert.className='alert ok';alert.textContent='➕ Добавьте первый витамин'}
-  else if(total>0&&taken===total){alert.className='alert ok';alert.textContent='✅ Отлично! Всё принято сегодня'}
-  else if(hour>=20&&pendingE.length){alert.className='alert warn';alert.textContent='⚠️ Не приняли вечером: '+pendingE.map(m=>m.name).join(', ')}
-  else if(hour>=12&&pendingM.length){alert.className='alert warn';alert.textContent='⚠️ Не приняли утром: '+pendingM.map(m=>m.name).join(', ')}
-  else if(pendingM.length&&hour<12){alert.className='alert ok';alert.textContent='🌅 Утро: '+pendingM.length+' приём(а) осталось'}
-  else if(pendingE.length){alert.className='alert ok';alert.textContent='🌙 Вечер: '+pendingE.length+' приём(а) осталось'}
-  else{alert.className='alert ok';alert.textContent='✨ Всё под контролем'}
-  function row(m,i,slot){
-    const taken=slot==='morning'?m.m:m.e;
-    return '<div class="med'+(taken?' taken':'')+'" data-i="'+i+'" data-slot="'+slot+'"><span class="med-emoji">'+m.emoji+'</span><div class="med-info"><div class="name">'+m.name+'</div><div class="hint">'+(taken?'Принято ✓':'Нажмите, когда выпьете')+'</div></div><div class="med-check">'+(taken?'✓':'')+'</div><button type="button" class="del" data-i="'+i+'">×</button></div>';
-  }
-  document.getElementById('morning').innerHTML=meds.map((m,i)=>slots(m).includes('morning')?row(m,i,'morning'):'').join('')||'<p style="opacity:.45;font-size:.85rem;padding:8px 0">Нет утренних</p>';
-  document.getElementById('evening').innerHTML=meds.map((m,i)=>slots(m).includes('evening')?row(m,i,'evening'):'').join('')||'<p style="opacity:.45;font-size:.85rem;padding:8px 0">Нет вечерних</p>';
-}
-function bindCard(){
-  const card=document.getElementById('card');
-  if(!card||card.dataset.bound)return;
-  card.dataset.bound='1';
-  card.addEventListener('click',e=>{
-    const t=e.target;
-    if(t.id==='addBtn'||t.closest('#addBtn')){
-      const name=document.getElementById('name').value.trim();if(!name)return;
-      const d=ensureToday(load());
-      d.meds.push({name,emoji:document.getElementById('emoji').value,when:document.getElementById('when').value,m:false,e:false});
-      save(d);document.getElementById('name').value='';render();return;
-    }
-    if(t.classList.contains('del')){
-      e.stopPropagation();
-      const d=ensureToday(load());d.meds.splice(+t.dataset.i,1);save(d);render();return;
-    }
-    const med=t.closest('.med');
-    if(med&&!t.classList.contains('del')){
-      const d=ensureToday(load());const m=d.meds[+med.dataset.i];
-      if(med.dataset.slot==='morning')m.m=!m.m;else m.e=!m.e;
-      save(d);render();
-    }
-  });
-  document.getElementById('name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addBtn').click()});
-}
-function init(){render();bindCard()}
-if(typeof vibeBoot==='function')vibeBoot(init);else document.addEventListener('DOMContentLoaded',init);
+window.__pillsRenderUI=function(s){
+  var circ=326.7;
+  var off=circ-(s.pct/100)*circ;
+  var fg=document.getElementById('ringFg');
+  if(fg)fg.style.strokeDashoffset=off;
+  var rp=document.getElementById('ringPct');if(rp)rp.textContent=s.pct+'%';
+  var rs=document.getElementById('ringSub');if(rs)rs.textContent=s.taken+' / '+s.total;
+  var cel=document.getElementById('celebrate');
+  if(cel)cel.classList.toggle('show',s.total>0&&s.taken===s.total);
+};
 </script>
+${pillsRuntimeScript}
 </body>
 </html>`;

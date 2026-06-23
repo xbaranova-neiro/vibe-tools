@@ -1,6 +1,7 @@
 "use client";
 
 import { MyAppsSection } from "@/components/MyAppsSection";
+import { ServerStatusBanner } from "@/components/ServerStatusBanner";
 import { TemplateCards } from "@/components/TemplateCards";
 import type { Template } from "@/lib/templates";
 
@@ -37,6 +38,7 @@ export function LandingView({
 }: LandingViewProps) {
   return (
     <div className="landing-page safe-x mx-auto w-full max-w-5xl px-3 pb-20 pt-4 sm:px-6 sm:pb-16 sm:pt-8">
+      <ServerStatusBanner />
       {isTelegram && (
         <div className="landing-fade mb-5 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3.5 sm:mb-6">
           <p className="text-sm font-medium text-violet-100">

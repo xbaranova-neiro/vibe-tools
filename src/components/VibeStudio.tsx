@@ -20,6 +20,7 @@ import {
   getCreationScript,
   waitForTheater,
 } from "@/lib/creation-theater";
+import { isLikelyNetworkError, networkErrorMessage } from "@/lib/network-hint";
 import { enrichCustomPrompt } from "@/lib/prompts";
 import { applyThemeToHtml, polishGeneratedApp } from "@/lib/apply-theme";
 import {
@@ -316,13 +317,13 @@ export function VibeStudio() {
       } catch (err) {
         let message =
           err instanceof Error ? err.message : "Не удалось сгенерировать";
-        if (
-          err instanceof TypeError ||
+        if (isLikelyNetworkError(err)) {
+          message = networkErrorMessage();
+        } else if (
           message.includes("Failed to fetch") ||
           message.includes("NetworkError")
         ) {
-          message =
-            "Сервер не ответил вовремя (генерация занимает до минуты). Попробуйте готовый шаблон — он собирается мгновенно.";
+          message = networkErrorMessage();
         }
         if (existingHtml) {
           setError(message);

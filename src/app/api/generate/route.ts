@@ -185,8 +185,8 @@ export async function POST(request: Request) {
         : errText.includes("429")
           ? "Слишком много запросов к OpenAI. Подождите минуту."
           : errText.includes("timeout") || errText.includes("Timeout")
-            ? "Генерация заняла слишком долго. Попробуйте короче описать идею или выберите шаблон."
-            : "Ошибка генерации. Попробуйте позже или выберите готовый шаблон.";
+            ? "Генерация заняла слишком долго. На Vercel Hobby лимит ~10 сек — используйте Timeweb или шаблон."
+            : "Ошибка генерации. Попробуйте шаблон или деплой на Timeweb (без VPN).";
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

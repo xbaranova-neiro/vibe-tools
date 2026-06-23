@@ -2,10 +2,13 @@
   "name": "vibe-tools",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start.mjs",
     "lint": "eslint",
     "test:lib": "node scripts/test-lib.mjs",
     "test:api": "node scripts/test-api.mjs",
