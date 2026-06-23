@@ -1,5 +1,4 @@
 import {
-  isIosDevice,
   isAndroidDevice,
   isMobileDevice,
   openAppInBrowser,

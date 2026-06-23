@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { parseApiJsonResponse } from "@/lib/parse-api-response";
+
 export type ServerHealth = {
   ok: boolean;
   openai: boolean;
@@ -28,11 +30,11 @@ export function useServerHealth() {
     fetch("/api/health", { signal: ctrl.signal, cache: "no-store" })
       .then(async (r) => {
         if (cancelled) return;
-        if (!r.ok) {
+        const { data } = await parseApiJsonResponse<ServerHealth>(r);
+        if (!data) {
           setHealth(DEFAULT);
           return;
         }
-        const data = (await r.json()) as ServerHealth;
         setHealth({
           ok: Boolean(data.ok),
           openai: Boolean(data.openai),

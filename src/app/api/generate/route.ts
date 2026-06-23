@@ -20,7 +20,11 @@ export const maxDuration = 120;
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
 const OPENAI_CREATE_MODEL =
-  process.env.OPENAI_CREATE_MODEL?.trim() || "gpt-4.1-mini";
+  process.env.OPENAI_CREATE_MODEL?.trim() ||
+  (process.env.VERCEL ? "gpt-4o-mini" : "gpt-4.1-mini");
+
+/** На Vercel Hobby ~10 сек — меньше токенов, быстрее модель. */
+const CREATE_MAX_TOKENS = process.env.VERCEL ? 3800 : 5500;
 
 async function generateChatReply(
   prompt: string,
@@ -128,7 +132,7 @@ export async function POST(request: Request) {
         },
       ],
       temperature: isRefinement ? 0.85 : 0.65,
-      max_tokens: isRefinement ? 12000 : 5500,
+      max_tokens: isRefinement ? 12000 : CREATE_MAX_TOKENS,
     });
 
     const choice = completion.choices[0];

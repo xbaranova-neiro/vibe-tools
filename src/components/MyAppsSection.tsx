@@ -19,10 +19,11 @@ export function MyAppsSection({
   onDelete,
   refreshKey = 0,
 }: MyAppsSectionProps) {
-  const [apps, setApps] = useState<SavedAppIndex[]>([]);
+  const [apps, setApps] = useState<SavedAppIndex[]>(() => listSavedApps());
 
   useEffect(() => {
-    setApps(listSavedApps());
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync read from localStorage on refreshKey change
+    setApps(() => listSavedApps());
   }, [refreshKey]);
 
   if (!apps.length) return null;

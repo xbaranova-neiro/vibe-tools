@@ -10,7 +10,6 @@ const TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 дней
 type MemoryEntry = { html: string; expires: number };
 
 declare global {
-  // eslint-disable-next-line no-var
   var __vibeAppStore: Map<string, MemoryEntry> | undefined;
 }
 

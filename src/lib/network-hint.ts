@@ -17,7 +17,15 @@ export function networkErrorMessage(): string {
 export function isLikelyNetworkError(err: unknown): boolean {
   if (err instanceof TypeError) return true;
   const msg = err instanceof Error ? err.message : String(err);
-  return /failed to fetch|networkerror|load failed|network request failed/i.test(
+  return /failed to fetch|networkerror|load failed|network request failed|unexpected token|is not valid json/i.test(
     msg,
+  );
+}
+
+/** Сообщение при ошибке парсинга JSON (Vercel HTML вместо API). */
+export function vercelOrParseErrorMessage(): string {
+  return networkErrorMessage().replace(
+    "Сервер не ответил",
+    "Vercel вернул ошибку вместо ответа",
   );
 }

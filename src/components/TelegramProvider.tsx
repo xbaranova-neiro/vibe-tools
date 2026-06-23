@@ -40,7 +40,8 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
 
   useLayoutEffect(() => {
     if (!detectTelegram()) return;
-    setIsTelegram(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync detection
+    setIsTelegram(() => true);
     initTelegramWebApp();
   }, []);
 

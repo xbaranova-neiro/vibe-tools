@@ -20,7 +20,8 @@ import {
   getCreationScript,
   waitForTheater,
 } from "@/lib/creation-theater";
-import { isLikelyNetworkError, networkErrorMessage } from "@/lib/network-hint";
+import { isLikelyNetworkError, networkErrorMessage, vercelOrParseErrorMessage } from "@/lib/network-hint";
+import { isJsonParseError, parseApiJsonResponse } from "@/lib/parse-api-response";
 import { enrichCustomPrompt } from "@/lib/prompts";
 import { applyThemeToHtml, polishGeneratedApp } from "@/lib/apply-theme";
 import {
@@ -278,14 +279,14 @@ export function VibeStudio() {
           signal: ctrl.signal,
         });
 
-        const data = (await res.json()) as {
+        const { data, error: parseError } = await parseApiJsonResponse<{
           html?: string;
           reply?: string;
           error?: string;
-        };
+        }>(res);
 
-        if (!res.ok) {
-          const failMessage = data.error ?? "Ошибка генерации";
+        if (parseError || !data) {
+          const failMessage = parseError || "Ошибка генерации";
           if (existingHtml) {
             setMessages((prev) => [
               ...prev,
@@ -335,6 +336,8 @@ export function VibeStudio() {
         ) {
           message =
             "Сервер не ответил за 2 минуты. Без VPN Vercel часто недоступен — выберите шаблон или включите VPN.";
+        } else if (isJsonParseError(err)) {
+          message = vercelOrParseErrorMessage();
         } else if (isLikelyNetworkError(err)) {
           message = networkErrorMessage();
         } else if (
