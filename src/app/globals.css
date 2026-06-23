@@ -15,6 +15,68 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+/* Высота viewport на iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen-safe {
+    min-height: -webkit-fill-available;
+  }
+}
+
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.safe-x {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Высота блока превью на телефоне */
+.preview-shell {
+  height: min(52dvh, 480px);
+  min-height: 260px;
+}
+
+@media (min-width: 640px) {
+  .preview-shell {
+    height: min(60dvh, 560px);
+    min-height: 340px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .preview-shell {
+    height: min(75vh, 640px);
+    min-height: 460px;
+  }
+}
+
+.touch-target {
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-bottom-bar {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Плавный скролл на iOS */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 @keyframes fadeUp {

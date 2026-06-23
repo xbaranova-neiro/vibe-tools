@@ -24,7 +24,6 @@ export function MobileSaveActions({
   title,
   isTelegram = false,
   onOpenFullscreen,
-  onOpenExternal,
 }: MobileSaveActionsProps) {
   const [busy, setBusy] = useState(false);
   const isIos = isIosDevice();
@@ -60,42 +59,32 @@ export function MobileSaveActions({
     void openAppInBrowser(html);
   };
 
-  const homeButton = (
-    <button
-      type="button"
-      onClick={() => void handleHomeScreen()}
-      disabled={busy}
-      className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 disabled:opacity-60"
-    >
-      {busy ? "…" : "📱 На экран «Домой»"}
-    </button>
-  );
+  const btnPrimary =
+    "touch-target w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 disabled:opacity-60";
+  const btnSecondary =
+    "touch-target rounded-xl border border-white/15 bg-white/5 py-3 text-sm font-semibold text-white/90 active:bg-white/10";
+  const btnGhost =
+    "touch-target rounded-xl border border-violet-400/40 bg-violet-500/20 py-3 text-sm font-semibold text-violet-50 active:bg-violet-500/30";
 
   if (isIos) {
     return (
       <div className="flex flex-col gap-2">
-        {homeButton}
+        <button
+          type="button"
+          onClick={() => void handleHomeScreen()}
+          disabled={busy}
+          className={btnPrimary}
+        >
+          {busy ? "…" : "📱 На экран «Домой»"}
+        </button>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={handleSaveFile}
-            className="rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-semibold text-white/90"
-          >
+          <button type="button" onClick={handleSaveFile} className={btnSecondary}>
             {isTelegram ? "🌐 Safari" : "💾 В Файлы"}
           </button>
-          <button
-            type="button"
-            onClick={handleOpen}
-            className="rounded-xl border border-violet-400/40 bg-violet-500/20 py-2.5 text-sm font-semibold text-violet-50"
-          >
+          <button type="button" onClick={handleOpen} className={btnGhost}>
             {isTelegram ? "▶ В чате" : "↗ Открыть"}
           </button>
         </div>
-        <p className="text-center text-[11px] text-white/45">
-          {isTelegram
-            ? "«Домой» откроет Safari → Поделиться → Добавить"
-            : "Safari → Поделиться → На экран «Домой»"}
-        </p>
       </div>
     );
   }
@@ -106,14 +95,14 @@ export function MobileSaveActions({
         <button
           type="button"
           onClick={handleSaveFile}
-          className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white"
+          className="touch-target rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white"
         >
           🌐 Safari
         </button>
         <button
           type="button"
           onClick={handleOpen}
-          className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white"
+          className="touch-target rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white"
         >
           ▶ В чате
         </button>
@@ -126,14 +115,14 @@ export function MobileSaveActions({
       <button
         type="button"
         onClick={handleSaveFile}
-        className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white"
+        className="touch-target rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white"
       >
         💾 Сохранить
       </button>
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white"
+        className="touch-target rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white"
       >
         ↗ Открыть
       </button>

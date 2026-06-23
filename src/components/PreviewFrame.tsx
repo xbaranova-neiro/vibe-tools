@@ -14,6 +14,9 @@ type PreviewFrameProps = {
   onOpenExternal?: () => void;
 };
 
+const PREVIEW_BOX =
+  "preview-shell flex w-full flex-col gap-2";
+
 export function PreviewFrame({
   html,
   title = "moe-prilozhenie",
@@ -31,20 +34,22 @@ export function PreviewFrame({
   });
 
   const frameShell = (frame: React.ReactNode) => (
-    <div className="flex h-[min(75vh,640px)] min-h-[460px] w-full flex-col gap-2">
+    <div className={PREVIEW_BOX}>
       {html && (
-        <MobileSaveActions
-          html={html}
-          title={title}
-          isTelegram={isTelegram}
-          onOpenFullscreen={onOpenFullscreen}
-          onOpenExternal={onOpenExternal}
-          compact
-        />
+        <div className="hidden lg:block">
+          <MobileSaveActions
+            html={html}
+            title={title}
+            isTelegram={isTelegram}
+            onOpenFullscreen={onOpenFullscreen}
+            onOpenExternal={onOpenExternal}
+            compact
+          />
+        </div>
       )}
       {!isTelegram && !isIos && (
-        <p className="px-1 text-center text-[11px] text-white/45">
-          «Сохранить» → Файлы · работает офлайн
+        <p className="hidden px-1 text-center text-[11px] text-white/45 sm:block lg:hidden">
+          Кнопки сохранения — внизу экрана
         </p>
       )}
       <div className="relative min-h-0 flex-1">{frame}</div>
@@ -57,9 +62,9 @@ export function PreviewFrame({
         <iframe
           ref={iframeRef}
           title="Превью приложения"
-          className="h-full w-full rounded-2xl border border-white/10 bg-white opacity-40"
+          className="h-full w-full rounded-xl border border-white/10 bg-white opacity-40 sm:rounded-2xl"
         />
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/40 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/40 backdrop-blur-sm sm:rounded-2xl">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
           <p className="mt-3 text-sm text-violet-200">Обновляем превью…</p>
         </div>
@@ -69,7 +74,9 @@ export function PreviewFrame({
 
   if (loading) {
     return (
-      <div className="flex h-[min(75vh,640px)] min-h-[460px] flex-col items-center justify-center gap-4 rounded-2xl border border-violet-500/20 bg-violet-950/20">
+      <div
+        className={`${PREVIEW_BOX} items-center justify-center gap-4 rounded-xl border border-violet-500/20 bg-violet-950/20 sm:rounded-2xl`}
+      >
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
         <p className="text-sm text-violet-200">Генерируем вашу штуку…</p>
         <p className="text-xs text-violet-300/60">Обычно 15–30 секунд</p>
@@ -79,13 +86,15 @@ export function PreviewFrame({
 
   if (!html) {
     return (
-      <div className="flex h-[min(75vh,640px)] min-h-[460px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/10 bg-white/5 p-8 text-center">
-        <span className="text-4xl">✨</span>
-        <p className="text-lg font-medium text-white/80">
+      <div
+        className={`${PREVIEW_BOX} items-center justify-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center sm:rounded-2xl sm:p-8`}
+      >
+        <span className="text-3xl sm:text-4xl">✨</span>
+        <p className="text-base font-medium text-white/80 sm:text-lg">
           Здесь появится ваше приложение
         </p>
         <p className="max-w-sm text-sm text-white/50">
-          Выберите шаблон или опиши идею — калькулятор, трекер, список
+          Выберите шаблон или опиши идею
         </p>
       </div>
     );
@@ -96,7 +105,7 @@ export function PreviewFrame({
       key={revision}
       ref={iframeRef}
       title="Превью приложения"
-      className="h-full w-full rounded-2xl border border-white/15 bg-white shadow-2xl shadow-violet-500/10 ring-1 ring-white/10"
+      className="h-full w-full rounded-xl border border-white/15 bg-white shadow-xl shadow-violet-500/10 ring-1 ring-white/10 sm:rounded-2xl sm:shadow-2xl"
     />,
   );
 }

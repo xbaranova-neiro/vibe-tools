@@ -413,33 +413,42 @@ export function VibeStudio() {
           onOpenExternal={openExternal}
         />
       )}
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 pb-24 sm:px-6 lg:pb-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-3 py-4 pb-36 sm:gap-4 sm:px-4 sm:py-6 sm:pb-28 lg:px-6 lg:pb-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold text-white">{title}</h1>
+            <h1 className="truncate text-lg font-bold text-white sm:text-xl">{title}</h1>
             {createdIn && (
-              <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+              <span className="shrink-0 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
                 ⚡ {createdIn} сек
               </span>
             )}
           </div>
-          <p className="text-sm text-white/50">
+          <p className="mt-1 hidden text-sm text-white/50 sm:block">
             {isIosDevice()
-              ? "«На экран Домой» → откроется Safari → Поделиться → Добавить"
+              ? "«На экран Домой» → Safari → Поделиться → Добавить"
               : isTelegram
-                ? "Нажмите «Пользоваться» — приложение откроется на весь экран"
+                ? "«В чате» — превью · «Safari» — сохранить"
                 : "Сохраните HTML в Файлы — откроется офлайн"}
           </p>
         </div>
-        <Toolbar
-          html={html}
-          title={title}
-          onReset={handleReset}
-          isTelegram={isTelegram}
-          onOpenFullscreen={openFullscreen}
-          onOpenExternal={openExternal}
-        />
+        <div className="hidden shrink-0 lg:block">
+          <Toolbar
+            html={html}
+            title={title}
+            onReset={handleReset}
+            isTelegram={isTelegram}
+            onOpenFullscreen={openFullscreen}
+            onOpenExternal={openExternal}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="touch-target self-start rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/70 lg:hidden"
+        >
+          🔄 Заново
+        </button>
       </header>
 
       {error && (
@@ -472,7 +481,7 @@ export function VibeStudio() {
       </div>
 
       {html && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="mobile-bottom-bar fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 px-3 py-3 backdrop-blur-md lg:hidden">
           <MobileSaveActions
             html={html}
             title={title}

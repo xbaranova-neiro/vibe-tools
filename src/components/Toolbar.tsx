@@ -86,7 +86,7 @@ export function Toolbar({
         type="button"
         onClick={() => void saveApp()}
         disabled={!html || saving}
-        className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+        className="touch-target rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {saving ? "…" : isTelegram ? "🌐 " : "💾 "}
         <span className="sm:hidden">{isTelegram ? "Safari" : "Файлы"}</span>
