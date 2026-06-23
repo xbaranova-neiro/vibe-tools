@@ -1,5 +1,7 @@
 "use client";
 
+import { openHtmlInNewTab, prepareHtmlForPreview } from "@/lib/prepare-html-for-preview";
+
 type ToolbarProps = {
   html: string | null;
   title: string;
@@ -9,8 +11,17 @@ type ToolbarProps = {
 export function Toolbar({ html, title, onReset }: ToolbarProps) {
   const downloadHtml = () => {
     if (!html) return;
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const prepared = prepareHtmlForPreview(html);
+    const blob = new Blob([prepared], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      openHtmlInNewTab(html);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     const a = document.createElement("a");
     a.href = url;
     a.download = `${title.replace(/\s+/g, "-").toLowerCase() || "my-app"}.html`;

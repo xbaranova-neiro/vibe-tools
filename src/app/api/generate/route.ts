@@ -11,6 +11,9 @@ import {
 } from "@/lib/prompts";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
+/** До 60 сек на Pro; на Hobby Vercel ограничит ~10 сек. */
+export const maxDuration = 60;
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -73,8 +76,8 @@ export async function POST(request: Request) {
           ),
         },
       ],
-      temperature: isRefinement ? 0.85 : 0.7,
-      max_tokens: 12000,
+      temperature: isRefinement ? 0.85 : 0.65,
+      max_tokens: isRefinement ? 12000 : 8000,
     });
 
     const choice = completion.choices[0];
@@ -122,12 +125,15 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Generate error:", error);
 
+    const errText = error instanceof Error ? error.message : "";
     const message =
-      error instanceof Error && error.message.includes("401")
+      errText.includes("401")
         ? "Неверный API ключ OpenAI."
-        : error instanceof Error && error.message.includes("429")
+        : errText.includes("429")
           ? "Слишком много запросов к OpenAI. Подождите минуту."
-          : "Ошибка генерации. Попробуйте позже.";
+          : errText.includes("timeout") || errText.includes("Timeout")
+            ? "Генерация заняла слишком долго. Попробуйте короче описать идею или выберите шаблон."
+            : "Ошибка генерации. Попробуйте позже или выберите готовый шаблон.";
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

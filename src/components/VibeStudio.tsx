@@ -11,6 +11,7 @@ import {
   getCreationScript,
   waitForTheater,
 } from "@/lib/creation-theater";
+import { enrichCustomPrompt } from "@/lib/prompts";
 import { applyThemeToHtml } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -286,7 +287,7 @@ export function VibeStudio() {
 
     if (!rawPrebuilt) {
       apiPromiseRef.current = generate(
-        meta.prompt,
+        enrichCustomPrompt(meta.prompt),
         undefined,
         meta.themePrompt,
       );
@@ -357,6 +358,7 @@ export function VibeStudio() {
           emoji={creationMeta.emoji}
           userPrompt={creationMeta.prompt}
           script={getCreationScript(creationMeta.templateId)}
+          aiGeneration={!creationMeta.templateId}
           onComplete={() => void handleTheaterComplete()}
         />
       </>
@@ -404,16 +406,18 @@ export function VibeStudio() {
         </div>
       )}
 
-      <div className="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-2">
-        <ChatPanel
-          messages={messages}
-          onSend={handleRefine}
-          loading={loading}
-          hasHtml={!!html}
-          isInitialGeneration={loading && !html}
-        />
-        <div className={justRevealed ? "reveal-app reveal-glow rounded-2xl" : ""}>
+      <div className="grid min-h-0 grid-cols-1 gap-4 lg:min-h-[520px] lg:grid-cols-2">
+        <div className={justRevealed ? "reveal-app reveal-glow order-1 rounded-2xl lg:order-2" : "order-1 lg:order-2"}>
           <PreviewFrame html={html} loading={loading} revision={revision} />
+        </div>
+        <div className="order-2 lg:order-1">
+          <ChatPanel
+            messages={messages}
+            onSend={handleRefine}
+            loading={loading}
+            hasHtml={!!html}
+            isInitialGeneration={loading && !html}
+          />
         </div>
       </div>
     </div>

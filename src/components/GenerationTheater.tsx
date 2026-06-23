@@ -9,6 +9,8 @@ type GenerationTheaterProps = {
   emoji: string;
   userPrompt: string;
   script: CreationScript;
+  /** Своя генерация через API — дольше шаблонов, другой текст ожидания */
+  aiGeneration?: boolean;
   onComplete?: () => void;
 };
 
@@ -17,6 +19,7 @@ export function GenerationTheater({
   emoji,
   userPrompt,
   script,
+  aiGeneration = false,
   onComplete,
 }: GenerationTheaterProps) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -24,6 +27,7 @@ export function GenerationTheater({
   const [typedCode, setTypedCode] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
+  const waitingForAi = aiGeneration && done;
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -96,8 +100,17 @@ export function GenerationTheater({
         <div className="mb-4 text-center">
           <div className="mb-2 text-4xl">{emoji}</div>
           <h2 className="text-xl font-bold text-white">
-            {done ? "✨ Готово!" : "Создаю приложение…"}
+            {waitingForAi
+              ? "Нейросеть пишет код…"
+              : done
+                ? "✨ Готово!"
+                : "Создаю приложение…"}
           </h2>
+          {waitingForAi && (
+            <p className="mt-2 text-xs text-white/45">
+              Это дольше шаблона — обычно 15–40 сек
+            </p>
+          )}
           <p className="mt-1 text-sm text-white/50">{title}</p>
           <p className="mx-auto mt-2 max-w-sm rounded-lg bg-white/5 px-3 py-1.5 text-xs text-violet-200/90">
             «{userPrompt.slice(0, 80)}
@@ -161,14 +174,22 @@ export function GenerationTheater({
 
         <div className="mt-4">
           <div className="mb-1.5 flex justify-between text-[10px] text-white/40">
-            <span>{done ? "Приложение собрано" : "Генерация…"}</span>
+            <span>
+              {waitingForAi
+                ? "Жду ответ OpenAI…"
+                : done
+                  ? "Приложение собрано"
+                  : "Генерация…"}
+            </span>
             <span>{elapsed.toFixed(1)} сек</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300 ease-out"
+              className={`h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300 ease-out${waitingForAi ? " animate-pulse" : ""}`}
               style={{
-                width: `${Math.min(100, ((stepIndex + 1) / script.steps.length) * 100)}%`,
+                width: waitingForAi
+                  ? "92%"
+                  : `${Math.min(100, ((stepIndex + 1) / script.steps.length) * 100)}%`,
               }}
             />
           </div>

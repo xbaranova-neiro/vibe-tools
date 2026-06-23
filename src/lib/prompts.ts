@@ -38,6 +38,24 @@ export const REFINEMENT_PROMPT = `Ты дорабатываешь существ
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
+/** Разворачивает короткую идею пользователя в структурированный бриф (как у шаблонов). */
+export function enrichCustomPrompt(userText: string): string {
+  return `Мини-приложение по идее пользователя.
+
+Идея: ${userText}
+
+Обязательная структура (как у готовых шаблонов):
+- Одна страница, mobile-first, интерфейс на русском
+- Главное действие сразу видно: кнопка добавить / отметить / сохранить
+- localStorage для данных, addEventListener на все кнопки, одна функция render()
+- Прогресс или счётчик, который обновляется при каждом действии
+- 1 вау-момент: CSS-анимация, emoji-праздник при цели или умный расчёт (streak, лимит, %)
+- Emoji и inline SVG вместо картинок — без внешних URL
+- Компактный код: один экран, без лишних секций — чтобы приложение быстро собралось
+
+Не делай: многостраничность, canvas-графики, drag-and-drop, внешние скрипты.`;
+}
+
 export function buildUserMessage(
   prompt: string,
   existingHtml?: string,
