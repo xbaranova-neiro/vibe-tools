@@ -4,11 +4,12 @@ import { MyAppsSection } from "@/components/MyAppsSection";
 import { ServerStatusBanner } from "@/components/ServerStatusBanner";
 import { TemplateCards } from "@/components/TemplateCards";
 import type { Template } from "@/lib/templates";
+import { useServerHealth } from "@/lib/use-server-health";
 
 const STEPS = [
-  { n: "1", title: "Выбери шаблон", desc: "или опиши идею" },
-  { n: "2", title: "Смотри генерацию", desc: "код на глазах" },
-  { n: "3", title: "Пользуйся", desc: "в «Мои приложения»" },
+  { n: "1", title: "Выбери шаблон", desc: "работает всегда" },
+  { n: "2", title: "Пользуйся", desc: "в превью сразу" },
+  { n: "3", title: "Сохранится", desc: "в «Мои приложения»" },
 ];
 
 type LandingViewProps = {
@@ -36,6 +37,8 @@ export function LandingView({
   error,
   isTelegram = false,
 }: LandingViewProps) {
+  const { aiAvailable, loading: healthLoading } = useServerHealth();
+
   return (
     <div className="landing-page safe-x mx-auto w-full max-w-5xl px-3 pb-20 pt-4 sm:px-6 sm:pb-16 sm:pt-8">
       <ServerStatusBanner />
@@ -82,7 +85,7 @@ export function LandingView({
             памятью в браузере.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-1.5 sm:mt-6 sm:gap-2 lg:justify-start">
-            {["7 шаблонов", "HTML за секунды", "всё в браузере"].map((tag) => (
+            {["7 шаблонов", "без VPN", "всё в браузере"].map((tag) => (
               <span
                 key={tag}
                 className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/45 sm:px-3 sm:text-xs"
@@ -162,13 +165,15 @@ export function LandingView({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4">
           <div>
             <h2 className="text-base font-semibold text-white sm:text-lg">
-              Что создаём?
+              Готовые шаблоны — работают всегда
             </h2>
             <p className="mt-0.5 text-xs text-white/45 sm:mt-1 sm:text-sm">
-              Нажми на шаблон — соберётся само
+              Без AI и VPN · нажми и пользуйся
             </p>
           </div>
-          <span className="text-[10px] text-white/30 sm:text-xs">7 идей</span>
+          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300 sm:text-xs">
+            рекомендуем
+          </span>
         </div>
         <TemplateCards
           onSelect={onTemplate}
@@ -192,7 +197,9 @@ export function LandingView({
                   Или своими словами
                 </label>
                 <p className="text-[11px] text-white/45 sm:text-xs">
-                  Трекер, список, калькулятор…
+                  {aiAvailable
+                    ? "Нужен доступ к серверу и OpenAI"
+                    : "Сейчас недоступно — выберите шаблон выше"}
                 </p>
               </div>
             </div>
@@ -214,10 +221,10 @@ export function LandingView({
             <button
               type="button"
               onClick={onCreate}
-              disabled={!prompt.trim()}
+              disabled={!prompt.trim() || healthLoading || !aiAvailable}
               className="touch-target mt-4 w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/25 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 sm:mt-5 sm:w-auto sm:min-w-[200px] sm:px-10"
             >
-              ✨ Создать с нуля
+              {aiAvailable ? "✨ Создать с нуля" : "AI недоступен — выберите шаблон"}
             </button>
           </div>
         </div>

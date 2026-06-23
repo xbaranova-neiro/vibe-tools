@@ -1,8 +1,9 @@
-import OpenAI from "openai";
+
 import { NextResponse } from "next/server";
 
 import { extractHtml, isValidGeneratedHtml, sanitizeHtml } from "@/lib/extract-html";
 import { extractAppHint, isClearRefineRequest } from "@/lib/chat-intent";
+import { getOpenAIClient } from "@/lib/openai-client";
 import {
   buildChatReplyMessage,
   buildUserMessage,
@@ -14,14 +15,8 @@ import {
 } from "@/lib/prompts";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
-/** До 60 сек на Pro; на Hobby Vercel ограничит ~10 сек. */
-export const maxDuration = 60;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  timeout: 55_000,
-  maxRetries: 1,
-});
+/** На Vercel Hobby ~10 сек; на Timeweb/VPS лимита нет. */
+export const maxDuration = 120;
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
 const OPENAI_CREATE_MODEL =
@@ -32,6 +27,7 @@ async function generateChatReply(
   existingHtml: string,
   history?: ChatTurn[],
 ): Promise<string | null> {
+  const openai = getOpenAIClient();
   const completion = await openai.chat.completions.create({
     model: OPENAI_MODEL,
     messages: [
@@ -112,7 +108,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: isRefinement ? OPENAI_MODEL : OPENAI_CREATE_MODEL,
       messages: [
         {

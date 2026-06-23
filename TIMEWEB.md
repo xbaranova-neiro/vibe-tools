@@ -1,100 +1,84 @@
-# Деплой на Timeweb — пошагово
+# Чтобы ВСЁ работало без VPN
 
-Если «не выгружается» / падает сборка — чаще всего одна из причин ниже.
+## Быстрый путь (Timeweb + Docker)
 
-## Способ A — Next.js + SSR (App Platform)
+1. [timeweb.cloud/my](https://timeweb.cloud/my) → **App Platform** → **Docker**
+2. GitHub: `xbaranova-neiro/vibe-tools`, ветка `main`
+3. Порт: **3000**
+4. Переменные:
+   ```
+   OPENAI_API_KEY=sk-...
+   OPENAI_MODEL=gpt-4.1-mini
+   NEXT_PUBLIC_APP_URL=https://ВАШ-URL.timeweb.cloud
+   APP_URL=https://ВАШ-URL.timeweb.cloud
+   ```
+5. Деплой → откройте URL **без VPN**
+6. Проверка: `https://ВАШ-URL.timeweb.cloud/api/health` → `"aiReady":true`
 
-1. [timeweb.cloud/my](https://timeweb.cloud/my) → **App Platform** → **Создать**
-2. Тип: **Frontend** → **Next.js** (не «HTML» и не «React»)
-3. Репозиторий: `https://github.com/xbaranova-neiro/vibe-tools`, ветка **`main`**
-4. **Путь к проекту:** оставить пустым (корень репо)
-5. **SSR — ВКЛЮЧИТЬ** (галочка обязательна). Без SSR `/api/generate` не работает, приложение бесполезно
-6. Node.js: **20**
-7. Команды (скопировать точно):
+## Что работает где
 
-| Поле | Значение |
-|------|----------|
-| Установка зависимостей | `npm ci` или `npm install` |
-| Сборка | `npm run build` |
-| Запуск | `npm start` |
+| Функция | Vercel без VPN | Timeweb без VPN |
+|---------|----------------|-----------------|
+| Шаблоны (витамины, бюджет…) | иногда | ✅ |
+| Своя идея (AI) | ❌ часто | ✅ |
+| Мои приложения | если сайт открылся | ✅ |
 
-8. **Не указывайте** директорию сборки `out` — у Next.js SSR это `.next`, платформа сама знает
-9. Переменные окружения:
+**Vercel для РФ — ненадёжно. Timeweb — основной вариант.**
 
-```
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4.1-mini
-NEXT_PUBLIC_APP_URL=https://ВАШ-ДОМЕН.timeweb.cloud
-APP_URL=https://ВАШ-ДОМЕН.timeweb.cloud
-NODE_ENV=production
-```
+## Если AI не работает на Timeweb
 
-`NEXT_PUBLIC_APP_URL` подставьте **после** первого деплоя, когда увидите URL в дашборде — затем **пересоберите** приложение.
+1. Проверьте `OPENAI_API_KEY` в переменных окружения
+2. Redeploy после добавления ключа
+3. Если OpenAI блокируется с сервера — задайте прокси:
+   ```
+   OPENAI_BASE_URL=https://ваш-прокси/v1
+   ```
 
-10. **Заказать** → вкладка **Деплой** → смотреть лог до конца
+## Альтернатива: Next.js + SSR (без Docker)
 
-### Если сборка падает
-
-- В логе `Cannot find module 'tailwindcss'` или `typescript` — в репо уже есть `.npmrc` с `production=false`, сделайте **Redeploy** после pull
-- `Could not find production build` — команда сборки должна быть `npm run build`, не `next export`
-- `EACCES` / `port` — команда запуска: `npm start` (слушает `PORT` от Timeweb)
+См. раздел «Способ A» ниже.
 
 ---
 
-## Способ B — Backend Node.js (если Next.js-шаблон не подключает GitHub)
+# Подробная инструкция Timeweb
+
+## Способ A — Next.js + SSR
+
+1. App Platform → **Frontend** → **Next.js**
+2. Репозиторий `xbaranova-neiro/vibe-tools`, ветка `main`
+3. **SSR — ВКЛЮЧИТЬ**
+4. Node.js **20**
+5. Сборка: `npm run build` · Запуск: `npm start`
+6. Переменные — как в разделе «Быстрый путь»
+
+## Способ B — Backend Node.js
 
 1. App Platform → **Backend** → **Node.js**
-2. Тот же репозиторий, ветка `main`
-3. Node **20**
-4. Сборка: `npm run build`
-5. Запуск: `npm start`
-6. Те же переменные окружения
+2. Тот же репозиторий
+3. Сборка: `npm run build` · Запуск: `npm start`
 
----
+## Способ C — Docker
 
-## Способ C — Docker (самый надёжный)
+Dockerfile и `docker-compose.yml` уже в репозитории.
 
-1. App Platform → **Docker** (или Docker Compose)
-2. Репозиторий `vibe-tools`, ветка `main`
-3. Dockerfile в корне — уже в репозитории
-4. Порт контейнера: **3000**
-5. Переменные: `OPENAI_API_KEY`, `NEXT_PUBLIC_APP_URL`, `APP_URL`
-
----
-
-## Проверка после деплоя
-
-Откройте в браузере **без VPN**:
-
-```
-https://ВАШ-ДОМЕН.timeweb.cloud/api/health
+Локально:
+```bash
+cp .env.example .env
+# заполните OPENAI_API_KEY
+docker compose up --build
 ```
 
-Должно вернуть: `{"ok":true,"openai":true,...}`
+## Проверка
 
-Затем главная → шаблон **Витамины** → добавить витамин.
-
----
+```
+/api/health → { "ok": true, "openai": true, "aiReady": true }
+```
 
 ## Частые ошибки
 
-| Симптом | Решение |
-|---------|---------|
-| GitHub не подключается | Авторизуйте Timeweb в GitHub → Settings → Applications |
-| Репозиторий приватный | Дайте доступ Timeweb Cloud к repo |
-| SSR не включили | Удалите приложение, создайте заново **с SSR** |
-| AI не работает | Проверьте `OPENAI_API_KEY` в переменных, redeploy |
-| Страница белая | Лог **Запуск** — должно быть `Ready on http://0.0.0.0:PORT` |
-
----
-
-## Локальная проверка перед деплоем
-
-```bash
-npm ci
-npm run build
-PORT=3000 npm start
-curl http://localhost:3000/api/health
-```
-
-Если локально OK, а на Timeweb нет — пришлите **текст ошибки из вкладки Деплой** (последние 30 строк лога).
+| Ошибка | Решение |
+|--------|---------|
+| Сборка падает на tailwind | В репо есть `.npmrc`, redeploy |
+| SSR не включён | Новое приложение с SSR |
+| aiReady: false | Ключ OpenAI или OPENAI_BASE_URL |
+| Зависает генерация | Не Vercel — используйте Timeweb |
