@@ -224,7 +224,7 @@ export async function saveHtmlToDevice(
           files: [file],
           title: title || "Моё приложение",
           text: isIos()
-            ? "После сохранения: Файлы → ⋯ → Открыть в Safari"
+            ? "Файл — только просмотр в Safari. Иконку на экран добавьте кнопкой «Иконка на экране»."
             : undefined,
         });
         return "shared";

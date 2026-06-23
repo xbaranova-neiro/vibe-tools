@@ -426,7 +426,7 @@ export function VibeStudio() {
           </div>
           <p className="mt-1 hidden text-sm text-white/50 sm:block">
             {isIosDevice()
-              ? "«На экран Домой» — сначала инструкция, потом Safari"
+              ? "«Иконка на экране» — как приложение · «Файл» — только в Safari"
               : isTelegram
                 ? "«В чате» — превью · «Safari» — сохранить"
                 : "Сохраните HTML в Файлы — откроется офлайн"}

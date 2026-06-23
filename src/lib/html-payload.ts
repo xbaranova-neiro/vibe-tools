@@ -1,14 +1,12 @@
 import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
 import { isTelegramWebView, openInExternalBrowser } from "@/lib/telegram-env";
 
-/** Практический лимит длины URL на iOS Safari. */
 export const MAX_PAYLOAD_LEN = 120_000;
 
 export function isIosDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/i.test(ua)) return true;
-  // iPadOS 13+ иногда маскируется под Mac
   return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
 }
 
@@ -83,12 +81,31 @@ export async function decodeHtmlPayload(payload: string): Promise<string | null>
   return null;
 }
 
-/** Прямая HTML-страница — работает с «На экран Домой». */
 export function appPagePath(payload: string): string {
   return `/api/view/${encodeURIComponent(payload)}`;
 }
 
-export async function appPageUrl(html: string): Promise<string | null> {
+type PublishResponse = {
+  url: string;
+  mode?: string;
+};
+
+/** Публикует на сервере → короткая ссылка /m/abc123. */
+export async function publishAppUrl(html: string): Promise<PublishResponse | null> {
+  try {
+    const res = await fetch("/api/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ html }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PublishResponse;
+  } catch {
+    return null;
+  }
+}
+
+async function fallbackLongUrl(html: string): Promise<string | null> {
   const payload = await encodeHtmlPayload(html);
   if (payload.length > MAX_PAYLOAD_LEN) return null;
   const origin =
@@ -96,45 +113,37 @@ export async function appPageUrl(html: string): Promise<string | null> {
   return `${origin}${appPagePath(payload)}`;
 }
 
+export async function appPageUrl(html: string): Promise<string | null> {
+  const published = await publishAppUrl(html);
+  if (published?.url) return published.url;
+  return fallbackLongUrl(html);
+}
+
 export type HomeScreenResult = "ok" | "too-large" | "unsupported";
 
-/** Открыть страницу приложения — с неё «На экран Домой» в Safari. */
-export async function openForHomeScreen(html: string): Promise<HomeScreenResult> {
-  if (typeof window === "undefined") return "unsupported";
-
-  const url = await appPageUrl(html);
-  if (!url) return "too-large";
-
+function navigate(url: string): void {
   if (isTelegramWebView()) {
     openInExternalBrowser(url);
-    return "ok";
+    return;
   }
-
   window.location.assign(url);
+}
+
+export async function openForHomeScreen(html: string): Promise<HomeScreenResult> {
+  if (typeof window === "undefined") return "unsupported";
+  const url = await appPageUrl(html);
+  if (!url) return "too-large";
+  navigate(url);
   return "ok";
 }
 
-/** Открыть приложение в Safari / новой вкладке (без blob:). */
 export async function openAppInBrowser(html: string): Promise<boolean> {
   const url = await appPageUrl(html);
   if (!url) return false;
-
-  if (isTelegramWebView()) {
-    openInExternalBrowser(url);
-    return true;
-  }
-
-  if (isIosDevice()) {
-    window.location.assign(url);
-    return true;
-  }
-
-  const opened = window.open(url, "_blank", "noopener,noreferrer");
-  if (!opened) window.location.assign(url);
+  navigate(url);
   return true;
 }
 
-/** @deprecated используйте appPageUrl */
 export function homeScreenUrl(html: string): Promise<string | null> {
   return appPageUrl(html);
 }

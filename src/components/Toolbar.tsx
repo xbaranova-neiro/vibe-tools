@@ -85,8 +85,8 @@ export function Toolbar({
             className="touch-target rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {homeBusy ? "…" : "📱 "}
-            <span className="hidden sm:inline">На экран «Домой»</span>
-            <span className="sm:hidden">Домой</span>
+            <span className="hidden sm:inline">Иконка на экране</span>
+            <span className="sm:hidden">На экран</span>
           </button>
         )}
         <button

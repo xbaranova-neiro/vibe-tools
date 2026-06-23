@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { encodeHtmlPayload } from "@/lib/html-payload";
+import { encodeHtmlPayload, publishAppUrl } from "@/lib/html-payload";
 import { prepareHtmlForPreview } from "@/lib/prepare-html-for-preview";
 import { IFRAME_SANDBOX } from "@/lib/telegram-env";
 
@@ -54,8 +54,18 @@ export function useIframeHtml({
       iframe.removeAttribute("srcdoc");
       iframe.removeAttribute("sandbox");
 
-      void encodeHtmlPayload(html).then((payload) => {
+      void publishAppUrl(html).then(async (published) => {
         if (cancelled) return;
+        if (published?.url) {
+          try {
+            const path = new URL(published.url, window.location.origin).pathname;
+            iframe.src = path;
+          } catch {
+            iframe.src = published.url;
+          }
+          return;
+        }
+        const payload = await encodeHtmlPayload(html);
         iframe.src = `/api/view/${encodeURIComponent(payload)}`;
       });
 

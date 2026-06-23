@@ -83,11 +83,11 @@ export function MobileSaveActions({
             disabled={busy}
             className={btnPrimary}
           >
-            📱 На экран «Домой»
+            📱 Иконка на экране
           </button>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={handleSaveFile} className={btnSecondary}>
-              {isTelegram ? "🌐 Safari" : "💾 В Файлы"}
+              {isTelegram ? "🌐 Safari" : "💾 Файл"}
             </button>
             <button type="button" onClick={handleOpen} className={btnGhost}>
               {isTelegram ? "▶ В чате" : "↗ Открыть"}
