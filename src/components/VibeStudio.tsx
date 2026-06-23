@@ -12,7 +12,10 @@ import {
   waitForTheater,
 } from "@/lib/creation-theater";
 import { enrichCustomPrompt } from "@/lib/prompts";
-import { openHtmlInNewTab } from "@/lib/prepare-html-for-preview";
+import {
+  openHtmlInNewTab,
+  saveHtmlToDevice,
+} from "@/lib/prepare-html-for-preview";
 import { applyThemeToHtml } from "@/lib/apply-theme";
 import {
   pickAppVariation,
@@ -395,7 +398,7 @@ export function VibeStudio() {
             )}
           </div>
           <p className="text-sm text-white/50">
-            Ваше приложение · доработайте промптом
+            Сохраните HTML на телефон — потом откроется без интернета
           </p>
         </div>
         <Toolbar html={html} title={title} onReset={handleReset} />
@@ -409,7 +412,7 @@ export function VibeStudio() {
 
       <div className="grid min-h-0 grid-cols-1 gap-4 lg:min-h-[520px] lg:grid-cols-2">
         <div className={justRevealed ? "reveal-app reveal-glow order-1 rounded-2xl lg:order-2" : "order-1 lg:order-2"}>
-          <PreviewFrame html={html} loading={loading} revision={revision} />
+          <PreviewFrame html={html} title={title} loading={loading} revision={revision} />
         </div>
         <div className="order-2 lg:order-1">
           <ChatPanel
@@ -423,13 +426,20 @@ export function VibeStudio() {
       </div>
 
       {html && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-[#07070f]/95 p-3 backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
-            onClick={() => openHtmlInNewTab(html)}
-            className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/30"
+            onClick={() => void saveHtmlToDevice(html, title)}
+            className="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25"
           >
-            ↗ Открыть приложение
+            💾 Сохранить
+          </button>
+          <button
+            type="button"
+            onClick={() => openHtmlInNewTab(html, { includeSaveBar: true })}
+            className="flex-1 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30"
+          >
+            ↗ Открыть
           </button>
         </div>
       )}

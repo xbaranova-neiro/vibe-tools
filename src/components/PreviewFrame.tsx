@@ -5,10 +5,12 @@ import { useEffect, useRef } from "react";
 import {
   openHtmlInNewTab,
   prepareHtmlForPreview,
+  saveHtmlToDevice,
 } from "@/lib/prepare-html-for-preview";
 
 type PreviewFrameProps = {
   html: string | null;
+  title?: string;
   loading?: boolean;
   revision?: number;
 };
@@ -16,7 +18,12 @@ type PreviewFrameProps = {
 const IFRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation";
 
-export function PreviewFrame({ html, loading, revision = 0 }: PreviewFrameProps) {
+export function PreviewFrame({
+  html,
+  title = "moe-prilozhenie",
+  loading,
+  revision = 0,
+}: PreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const blobUrlRef = useRef<string | null>(null);
 
@@ -47,23 +54,37 @@ export function PreviewFrame({ html, loading, revision = 0 }: PreviewFrameProps)
 
   const openFullscreen = () => {
     if (!html) return;
-    openHtmlInNewTab(html);
+    openHtmlInNewTab(html, { includeSaveBar: true });
+  };
+
+  const saveToPhone = () => {
+    if (!html) return;
+    void saveHtmlToDevice(html, title);
   };
 
   const frameShell = (frame: React.ReactNode) => (
     <div className="flex h-[min(75vh,640px)] min-h-[460px] w-full flex-col gap-2">
       {html && (
-        <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center text-xs text-white/50 sm:text-left">
-            На телефоне нажмите кнопку ниже или внизу экрана
+        <div className="flex flex-col gap-2 px-1">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={saveToPhone}
+              className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-2.5 text-sm font-semibold text-white shadow-md"
+            >
+              💾 Сохранить
+            </button>
+            <button
+              type="button"
+              onClick={openFullscreen}
+              className="rounded-xl border border-violet-400/40 bg-violet-500/20 px-3 py-2.5 text-sm font-semibold text-violet-50"
+            >
+              ↗ Открыть
+            </button>
+          </div>
+          <p className="text-center text-[11px] text-white/45">
+            «Сохранить» → Файлы на телефоне · работает офлайн
           </p>
-          <button
-            type="button"
-            onClick={openFullscreen}
-            className="w-full shrink-0 rounded-xl border border-violet-400/40 bg-violet-500/20 px-4 py-2.5 text-sm font-semibold text-violet-50 transition hover:bg-violet-500/30 sm:ml-auto sm:w-auto"
-          >
-            ↗ Открыть приложение
-          </button>
         </div>
       )}
       <div className="relative min-h-0 flex-1">{frame}</div>
