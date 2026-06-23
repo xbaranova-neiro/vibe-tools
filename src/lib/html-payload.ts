@@ -1,5 +1,5 @@
 import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
-import { isIosDevice } from "@/lib/device";
+import { isMobileDevice } from "@/lib/device";
 import { isTelegramWebView, openInExternalBrowser } from "@/lib/telegram-env";
 
 export { isIosDevice, isAndroidDevice, isMobileDevice, getMobilePlatform, canInstallToHomeScreen } from "@/lib/device";
@@ -117,6 +117,18 @@ export async function appPageUrl(html: string): Promise<string | null> {
 
 export type HomeScreenResult = "ok" | "too-large" | "unsupported";
 
+function openHtmlBlobInNewTab(html: string): boolean {
+  const prepared = prepareHtmlForStandalone(html);
+  const blob = new Blob([prepared], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const tab = window.open(url, "_blank", "noopener,noreferrer");
+  if (!tab) {
+    window.location.assign(url);
+  }
+  window.setTimeout(() => URL.revokeObjectURL(url), 120_000);
+  return true;
+}
+
 function navigate(url: string): void {
   if (isTelegramWebView()) {
     openInExternalBrowser(url);
@@ -134,6 +146,17 @@ export async function openForHomeScreen(html: string): Promise<HomeScreenResult>
 }
 
 export async function openAppInBrowser(html: string): Promise<boolean> {
+  if (isTelegramWebView()) {
+    const url = await appPageUrl(html);
+    if (!url) return false;
+    openInExternalBrowser(url);
+    return true;
+  }
+
+  if (!isMobileDevice()) {
+    return openHtmlBlobInNewTab(html);
+  }
+
   const url = await appPageUrl(html);
   if (!url) return false;
   navigate(url);
