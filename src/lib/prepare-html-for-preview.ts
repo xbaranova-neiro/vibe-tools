@@ -116,7 +116,11 @@ function injectMobileMeta(html: string): string {
   if (!result.includes("apple-mobile-web-app-capable")) {
     result = result.replace(
       /<\/head>/i,
-      '<meta name="apple-mobile-web-app-capable" content="yes">\n</head>',
+      `<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%237c3aed' width='100' height='100' rx='22'/%3E%3Ctext y='.9em' x='50%25' text-anchor='middle' font-size='52'%3E✨%3C/text%3E%3C/svg%3E">
+</head>`,
     );
   }
 
@@ -126,6 +130,27 @@ function injectMobileMeta(html: string): string {
 
   return result;
 }
+
+/** Подсказка «На экран Домой» — только в Safari, не в ярлыке. */
+const HOME_SCREEN_SAFARI_GUIDE = `<div id="vibe-homescreen-guide" style="position:fixed;bottom:0;left:0;right:0;z-index:2147483647;padding:14px 14px max(14px,env(safe-area-inset-bottom));background:rgba(15,15,25,.97);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.5;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
+<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#c4b5fd">📱 Как добавить на экран «Домой»</p>
+<ol style="margin:0 0 12px;padding-left:18px;color:rgba(255,255,255,.85)">
+<li style="margin-bottom:6px">Внизу нажмите <strong style="color:#fff">Поделиться</strong> — квадрат со стрелкой вверх</li>
+<li style="margin-bottom:6px">Прокрутите меню → <strong style="color:#fff">На экран «Домой»</strong></li>
+<li>Справа вверху нажмите <strong style="color:#fff">Добавить</strong></li>
+</ol>
+<p style="margin:0 0 12px;font-size:11px;color:rgba(255,255,255,.5">⚠️ Добавляйте ярлык сейчас — когда видите это приложение. Потом откройте иконку с домашнего экрана.</p>
+<button type="button" onclick="document.getElementById('vibe-homescreen-guide').remove()" style="display:block;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(90deg,#7c3aed,#d946ef);color:#fff;font-weight:700;font-size:15px;cursor:pointer">✓ Понятно, пользоваться</button>
+</div>
+<script id="vibe-homescreen-guide-script">
+(function(){
+  var el=document.getElementById("vibe-homescreen-guide");
+  if(!el)return;
+  var standalone=window.navigator.standalone===true||window.matchMedia("(display-mode: standalone)").matches;
+  if(standalone){el.remove();return}
+  if(!/iPhone|iPad|iPod/i.test(navigator.userAgent))el.remove();
+})();
+</script>`;
 
 export function slugifyFilename(title: string): string {
   const slug = title
@@ -142,7 +167,21 @@ export function prepareHtmlForPreview(html: string): string {
   return injectHeadInit(injectMobileMeta(html));
 }
 
-/** Готовит HTML для сохранения на телефон (iOS file://). */
+/** Готовит HTML для «На экран Домой» и /api/view — чистое приложение. */
+export function prepareHtmlForStandalone(html: string): string {
+  let result = injectHeadInit(injectMobileMeta(html));
+
+  if (!result.includes("vibe-homescreen-guide")) {
+    result = result.replace(
+      /<\/body>/i,
+      `${HOME_SCREEN_SAFARI_GUIDE}\n</body>`,
+    );
+  }
+
+  return result;
+}
+
+/** Готовит HTML для сохранения в «Файлы» (iOS file://). */
 export function prepareHtmlForExport(html: string): string {
   let result = injectHeadInit(injectMobileMeta(html));
 

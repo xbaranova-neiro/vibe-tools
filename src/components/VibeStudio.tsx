@@ -426,7 +426,7 @@ export function VibeStudio() {
           </div>
           <p className="mt-1 hidden text-sm text-white/50 sm:block">
             {isIosDevice()
-              ? "«На экран Домой» → Safari → Поделиться → Добавить"
+              ? "«На экран Домой» — сначала инструкция, потом Safari"
               : isTelegram
                 ? "«В чате» — превью · «Safari» — сохранить"
                 : "Сохраните HTML в Файлы — откроется офлайн"}
@@ -439,7 +439,6 @@ export function VibeStudio() {
             onReset={handleReset}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
-            onOpenExternal={openExternal}
           />
         </div>
         <button
@@ -466,7 +465,6 @@ export function VibeStudio() {
             revision={revision}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
-            onOpenExternal={openExternal}
           />
         </div>
         <div className="order-2 lg:order-1">
@@ -487,7 +485,6 @@ export function VibeStudio() {
             title={title}
             isTelegram={isTelegram}
             onOpenFullscreen={openFullscreen}
-            onOpenExternal={openExternal}
           />
         </div>
       )}

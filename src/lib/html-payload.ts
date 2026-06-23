@@ -1,4 +1,4 @@
-import { prepareHtmlForExport } from "@/lib/prepare-html-for-preview";
+import { prepareHtmlForStandalone } from "@/lib/prepare-html-for-preview";
 import { isTelegramWebView, openInExternalBrowser } from "@/lib/telegram-env";
 
 /** Практический лимит длины URL на iOS Safari. */
@@ -52,7 +52,7 @@ async function gunzipBytes(bytes: Uint8Array): Promise<string> {
 }
 
 export async function encodeHtmlPayload(html: string): Promise<string> {
-  const prepared = prepareHtmlForExport(html);
+  const prepared = prepareHtmlForStandalone(html);
 
   if (typeof CompressionStream !== "undefined") {
     const compressed = await gzipText(prepared);
@@ -83,9 +83,9 @@ export async function decodeHtmlPayload(payload: string): Promise<string | null>
   return null;
 }
 
-/** Путь без hash — Telegram openLink обрезает #fragment. */
+/** Прямая HTML-страница — работает с «На экран Домой». */
 export function appPagePath(payload: string): string {
-  return `/app/p/${encodeURIComponent(payload)}`;
+  return `/api/view/${encodeURIComponent(payload)}`;
 }
 
 export async function appPageUrl(html: string): Promise<string | null> {

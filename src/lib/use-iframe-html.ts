@@ -56,7 +56,7 @@ export function useIframeHtml({
 
       void encodeHtmlPayload(html).then((payload) => {
         if (cancelled) return;
-        iframe.src = `/embed#${payload}`;
+        iframe.src = `/api/view/${encodeURIComponent(payload)}`;
       });
 
       return () => {

@@ -1,23 +1,11 @@
-import type { Metadata, Viewport } from "next";
-
-import StandaloneAppClient from "../../StandaloneAppClient";
-
-export const metadata: Metadata = {
-  title: "Моё приложение",
-  appleWebApp: { capable: true, title: "Моё приложение" },
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+import { redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ payload: string }>;
 };
 
-export default async function AppPayloadPage({ params }: PageProps) {
+/** Старые ссылки /app/p/… → прямая HTML-страница. */
+export default async function AppPayloadRedirect({ params }: PageProps) {
   const { payload } = await params;
-  return <StandaloneAppClient pathPayload={payload} />;
+  redirect(`/api/view/${payload}`);
 }

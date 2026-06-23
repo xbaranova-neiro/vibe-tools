@@ -11,7 +11,6 @@ type PreviewFrameProps = {
   revision?: number;
   isTelegram?: boolean;
   onOpenFullscreen?: (html: string) => void;
-  onOpenExternal?: () => void;
 };
 
 const PREVIEW_BOX =
@@ -24,7 +23,6 @@ export function PreviewFrame({
   revision = 0,
   isTelegram = false,
   onOpenFullscreen,
-  onOpenExternal,
 }: PreviewFrameProps) {
   const isIos = isIosDevice();
   const iframeRef = useIframeHtml({
@@ -42,8 +40,6 @@ export function PreviewFrame({
             title={title}
             isTelegram={isTelegram}
             onOpenFullscreen={onOpenFullscreen}
-            onOpenExternal={onOpenExternal}
-            compact
           />
         </div>
       )}

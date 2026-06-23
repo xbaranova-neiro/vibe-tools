@@ -6,28 +6,38 @@ export function installHtmlDocument(html: string, target: Document = document): 
   if (title) target.title = title;
 
   target.head
-    .querySelectorAll("meta, link, style, title, base")
+    .querySelectorAll("meta, link, style, title, base, script")
     .forEach((el) => el.remove());
 
-  parsed.head.querySelectorAll("meta, link, style, title, base").forEach((el) => {
-    target.head.appendChild(target.importNode(el, true));
-  });
+  parsed.head
+    .querySelectorAll("meta, link, style, title, base")
+    .forEach((el) => {
+      target.head.appendChild(target.importNode(el, true));
+    });
 
   target.body.innerHTML = parsed.body.innerHTML;
 
-  const runScripts = (root: ParentNode) => {
-    root.querySelectorAll("script").forEach((oldScript) => {
-      const script = target.createElement("script");
-      for (const attr of oldScript.attributes) {
-        script.setAttribute(attr.name, attr.value);
-      }
-      if (oldScript.textContent) {
-        script.textContent = oldScript.textContent;
-      }
-      oldScript.replaceWith(script);
-    });
+  const runScript = (oldScript: HTMLScriptElement) => {
+    const script = target.createElement("script");
+    for (const attr of oldScript.attributes) {
+      script.setAttribute(attr.name, attr.value);
+    }
+    if (oldScript.textContent) {
+      script.textContent = oldScript.textContent;
+    }
+    oldScript.parentNode?.replaceChild(script, oldScript);
   };
 
-  runScripts(parsed.head);
-  runScripts(target.body);
+  parsed.head.querySelectorAll("script").forEach((node) => {
+    const script = target.createElement("script");
+    for (const attr of node.attributes) {
+      script.setAttribute(attr.name, attr.value);
+    }
+    if (node.textContent) script.textContent = node.textContent;
+    target.head.appendChild(script);
+  });
+
+  target.body.querySelectorAll("script").forEach((node) => {
+    runScript(node as HTMLScriptElement);
+  });
 }
