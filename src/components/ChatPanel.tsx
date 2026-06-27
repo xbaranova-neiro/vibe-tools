@@ -46,7 +46,7 @@ export function ChatPanel({
       <div className="mobile-scroll min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3 sm:space-y-3 sm:p-4">
         {messages.length === 0 && (
           <p className="text-sm text-white/40">
-            «Добавь тёмную тему» · «Сделай крупнее кнопки»
+            «Добавь тёмную тему» · «Поменяй цвета на синие»
           </p>
         )}
         {messages.map((msg, i) => (
@@ -77,7 +77,7 @@ export function ChatPanel({
             name="refine"
             type="text"
             disabled={!hasHtml || loading}
-            placeholder="Добавь график…"
+            placeholder="Сделай тёмную тему…"
             className="touch-target flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-white placeholder:text-white/30 outline-none focus:border-violet-400 disabled:opacity-40 sm:text-sm"
           />
           <button

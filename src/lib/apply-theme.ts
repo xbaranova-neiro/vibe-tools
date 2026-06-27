@@ -49,6 +49,57 @@ body{background:linear-gradient(160deg,var(--vibe-bg1),var(--vibe-bg2) 50%,var(-
 .persona-receipt .card,.persona-receipt .item,.persona-receipt .row{background:#fff!important;color:#374151!important}
 `;
 
+/** Снимает тему/полировку Vibe Studio — иначе !important блокирует смену цветов при доработке. */
+export function stripStudioLayers(html: string): string {
+  let result = html;
+  result = result.replace(
+    /<style data-vibe-theme="[^"]*">[\s\S]*?<\/style>/gi,
+    "",
+  );
+  result = result.replace(
+    /<style data-vibe-variation>[\s\S]*?<\/style>/gi,
+    "",
+  );
+  result = result.replace(
+    /<style data-vibe-polish>[\s\S]*?<\/style>/gi,
+    "",
+  );
+  result = result.replace(
+    /<script data-vibe-polish>[\s\S]*?<\/script>/gi,
+    "",
+  );
+  result = result.replace(
+    /<style data-vibe-personality>[\s\S]*?<\/style>/gi,
+    "",
+  );
+  result = result.replace(
+    /<script data-vibe-personality>[\s\S]*?<\/script>/gi,
+    "",
+  );
+  result = result.replace(
+    /<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^"]*">/gi,
+    "",
+  );
+  result = result.replace(/\sdata-vibe-theme="[^"]*"/gi, "");
+  result = result.replace(/\sdata-vibe-flavor="[^"]*"/gi, "");
+  result = result.replace(/<body([^>]*)>/i, (_match, attrs: string) => {
+    let a = (attrs ?? "")
+      .replace(/\spersona-[\w-]+/g, "")
+      .replace(/\sdata-vibe-flavor="[^"]*"/g, "");
+    if (/class="([^"]*)"/.test(a)) {
+      a = a.replace(/class="([^"]*)"/, (_m, cls: string) => {
+        const cleaned = cls
+          .replace(/\bpersona-[\w-]+\b/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        return cleaned ? `class="${cleaned}"` : "";
+      });
+    }
+    return `<body ${a.trim()}>`;
+  });
+  return result;
+}
+
 export function applyThemeToHtml(
   html: string,
   theme: VibeTheme,

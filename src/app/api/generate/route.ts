@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { extractHtml, isValidGeneratedHtml, sanitizeHtml } from "@/lib/extract-html";
 import { extractAppHint, isClearRefineRequest } from "@/lib/chat-intent";
+import { stripStudioLayers } from "@/lib/apply-theme";
 import { getOpenAIClient } from "@/lib/openai-client";
 import {
   buildChatReplyMessage,
@@ -91,11 +92,14 @@ export async function POST(request: Request) {
     }
 
     const isRefinement = Boolean(body.existingHtml);
+    const existingHtml = body.existingHtml
+      ? stripStudioLayers(body.existingHtml)
+      : undefined;
 
-    if (isRefinement && body.existingHtml && !isClearRefineRequest(prompt)) {
+    if (isRefinement && existingHtml && !isClearRefineRequest(prompt)) {
       const reply = await generateChatReply(
         prompt,
-        body.existingHtml,
+        existingHtml,
         body.history,
       );
 
@@ -125,7 +129,7 @@ export async function POST(request: Request) {
           role: "user",
           content: buildUserMessage(
             prompt,
-            body.existingHtml,
+            existingHtml,
             body.history,
             body.themePrompt,
           ),
@@ -162,7 +166,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (body.existingHtml && !htmlChanged(body.existingHtml, html)) {
+    if (existingHtml && !htmlChanged(existingHtml, html)) {
       return NextResponse.json(
         {
           error:
