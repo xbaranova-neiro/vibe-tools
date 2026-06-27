@@ -1,31 +1,41 @@
-/** Ясная команда на изменение HTML — идём в полную генерацию. */
-export function isClearRefineRequest(message: string): boolean {
+/** Есть ли в сообщении глагол/намерение изменить приложение. */
+const REFINE_ACTION =
+  /(добав\w*|убер\w*|удал\w*|измен\w*|сдел\w*|исправ\w*|помен\w*|передел\w*|увелич\w*|уменьш\w*|замен\w*|встав\w*|скрой\w*|покаж\w*|улучш\w*|доработ\w*|обнов\w*|почин\w*|перекрас\w*|украс\w*|укрупн\w*|потемн\w*|посветл\w*|перенес\w*|перестав\w*|убрать|добавить|изменить|исправить|fix|add|remove|change|update|make)/i;
+
+/**
+ * Только текстовый ответ без правки HTML — узкий список.
+ * Всё остальное при открытом приложении → полная доработка через нейросеть.
+ */
+export function isChatOnlyRefineMessage(message: string): boolean {
   const t = message.trim();
-  if (t.length < 3) return false;
+  if (t.length < 3) return true;
 
-  if (/^(как|что|можно\s+ли|зачем|почему|где|куда|когда|сколько|explain|how|what|why)\b/i.test(t)) {
-    return false;
+  if (/^(привет|здравств|спасибо|благодар|понятно|hello|hi|hey|окей|ок)$/i.test(t)) {
+    return true;
   }
 
-  if (/^(привет|здравств|спасибо|благодар|окей|ок$|понятно|hello|hi)\b/i.test(t)) {
-    return false;
+  if (/^(как|зачем|почему|how|why)\s/i.test(t) && !REFINE_ACTION.test(t)) {
+    return true;
   }
 
-  // Без \b — в JS word boundary не работает с кириллицей.
-  const refineVerbs =
-    /(добав\w*|убери\w*|удали\w*|измени\w*|сделай\w*|исправ\w*|поменя\w*|передел\w*|увелич\w*|уменьш\w*|замени\w*|встав\w*|скрой\w*|покажи\w*|укрупн\w*|потемн\w*|посветл\w*|перенес\w*|перестав\w*|убрать|добавить|изменить|исправить|перекрась\w*|перекрас\w*)/i;
+  if (/^(что такое|что значит|что умеет|что делает|what is)\s/i.test(t)) {
+    return true;
+  }
 
-  const refineTargets =
-    /(тем\w*|тёмн\w*|темн\w*|светл\w*|кнопк\w*|фон\w*|шрифт\w*|анимац\w*|график\w*|иконк\w*|список\w*|пол\w*|форм\w*|цвет\w*|стил\w*|размер\w*|отступ\w*|прогресс\w*|счётчик\w*|счетчик\w*|назван\w*|текст\w*|градиент\w*|обводк\w*|акцент\w*|ярч\w*|бледн\w*|контраст\w*)/i;
+  if (/^(сколько|когда|где)\s/i.test(t) && !REFINE_ACTION.test(t)) {
+    return true;
+  }
 
-  const colorThemeOnly =
-    /(цвет\w*|тем\w*|тёмн\w*|темн\w*|светл\w*|фон\w*|градиент\w*|ярч\w*|бледн\w*|акцент\w*|palette|dark|light|theme)/i;
-
-  if (refineVerbs.test(t)) return true;
-  if (refineTargets.test(t) && t.length >= 8) return true;
-  if (colorThemeOnly.test(t) && t.length >= 6) return true;
+  if (/\?\s*$/.test(t) && !REFINE_ACTION.test(t)) {
+    return true;
+  }
 
   return false;
+}
+
+/** @deprecated Используйте !isChatOnlyRefineMessage */
+export function isClearRefineRequest(message: string): boolean {
+  return !isChatOnlyRefineMessage(message);
 }
 
 export function extractAppHint(html: string): string {
@@ -33,4 +43,16 @@ export function extractAppHint(html: string): string {
   const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim();
   const parts = [title, h1].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : "приложение";
+}
+
+/** Разворачивает короткий запрос «улучши» в конкретную задачу для модели. */
+export function enrichRefinePrompt(message: string): string {
+  const t = message.trim();
+  if (/^(улучши|лучше|ещё|еще|доработай|обнови|красивее|сочнее|wow)$/i.test(t)) {
+    return `${t}\n\nСделай заметные улучшения: цвета, отступы, анимации или UX — чтобы сразу была видна разница.`;
+  }
+  if (/^(улучши|сделай лучше|доработай)\b/i.test(t) && t.length < 40) {
+    return `${t}\n\nИзмени интерфейс так, чтобы пользователь сразу увидел разницу в превью.`;
+  }
+  return t;
 }

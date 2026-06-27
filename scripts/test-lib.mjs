@@ -53,17 +53,17 @@ assert(
   sanitizeHtml('<img src="https://example.com/a.jpg" alt="x">').includes("🛒"),
 );
 
-function isClearRefineRequest(message) {
+const REFINE_ACTION =
+  /(добав\w*|убер\w*|удал\w*|измен\w*|сдел\w*|исправ\w*|помен\w*|передел\w*|увелич\w*|уменьш\w*|замен\w*|встав\w*|скрой\w*|покаж\w*|улучш\w*|доработ\w*|обнов\w*|почин\w*|перекрас\w*|украс\w*|укрупн\w*|потемн\w*|посветл\w*|перенес\w*|перестав\w*|убрать|добавить|изменить|исправить|fix|add|remove|change|update|make)/i;
+
+function isChatOnlyRefineMessage(message) {
   const t = message.trim();
-  if (t.length < 3) return false;
-  if (/^(как|что|можно\s+ли|зачем|почему|где|куда|когда|сколько|explain|how|what|why)\b/i.test(t)) return false;
-  if (/^(привет|здравств|спасибо|благодар|окей|ок$|понятно|hello|hi)\b/i.test(t)) return false;
-  const refineVerbs = /(добав\w*|убери\w*|удали\w*|измени\w*|сделай\w*|исправ\w*|поменя\w*|передел\w*|увелич\w*|уменьш\w*|замени\w*|встав\w*|скрой\w*|покажи\w*|укрупн\w*|потемн\w*|посветл\w*|перенес\w*|перестав\w*|убрать|добавить|изменить|исправить|перекрась\w*|перекрас\w*)/i;
-  const refineTargets = /(тем\w*|тёмн\w*|темн\w*|светл\w*|кнопк\w*|фон\w*|шрифт\w*|анимац\w*|график\w*|иконк\w*|список\w*|пол\w*|форм\w*|цвет\w*|стил\w*|размер\w*|отступ\w*|прогресс\w*|счётчик\w*|счетчик\w*|назван\w*|текст\w*|градиент\w*|обводк\w*|акцент\w*|ярч\w*|бледн\w*|контраст\w*)/i;
-  const colorThemeOnly = /(цвет\w*|тем\w*|тёмн\w*|темн\w*|светл\w*|фон\w*|градиент\w*|ярч\w*|бледн\w*|акцент\w*|palette|dark|light|theme)/i;
-  if (refineVerbs.test(t)) return true;
-  if (refineTargets.test(t) && t.length >= 8) return true;
-  if (colorThemeOnly.test(t) && t.length >= 6) return true;
+  if (t.length < 3) return true;
+  if (/^(привет|здравств|спасибо|благодар|понятно|hello|hi|hey|окей|ок)$/i.test(t)) return true;
+  if (/^(как|зачем|почему|how|why)\s/i.test(t) && !REFINE_ACTION.test(t)) return true;
+  if (/^(что такое|что значит|что умеет|что делает|what is)\s/i.test(t)) return true;
+  if (/^(сколько|когда|где)\s/i.test(t) && !REFINE_ACTION.test(t)) return true;
+  if (/\?\s*$/.test(t) && !REFINE_ACTION.test(t)) return true;
   return false;
 }
 
@@ -78,11 +78,12 @@ function stripStudioLayers(html) {
   return result;
 }
 
-assert("refine: поменяй цвета", isClearRefineRequest("поменяй цвета на синие"));
-assert("refine: сделай тёмную тему", isClearRefineRequest("сделай тёмную тему"));
-assert("refine: синий фон", isClearRefineRequest("синий фон"));
-assert("refine: not vague улучши", !isClearRefineRequest("улучши"));
-assert("refine: not question", !isClearRefineRequest("как сохранить"));
+assert("refine html: поменяй цвета", !isChatOnlyRefineMessage("поменяй цвета на синие"));
+assert("refine html: улучши", !isChatOnlyRefineMessage("улучши"));
+assert("refine html: не нравится", !isChatOnlyRefineMessage("не нравится дизайн"));
+assert("refine html: синий фон", !isChatOnlyRefineMessage("синий фон"));
+assert("chat only: как сохранить", isChatOnlyRefineMessage("как сохранить"));
+assert("chat only: привет", isChatOnlyRefineMessage("привет"));
 assert(
   "strip theme removes vibe-theme",
   !stripStudioLayers('<style data-vibe-theme="x">body{background:red!important}</style><body></body>').includes("vibe-theme"),

@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 
 import { extractHtml, isValidGeneratedHtml, sanitizeHtml } from "@/lib/extract-html";
-import { extractAppHint, isClearRefineRequest } from "@/lib/chat-intent";
+import { enrichRefinePrompt, extractAppHint, isChatOnlyRefineMessage } from "@/lib/chat-intent";
 import { stripStudioLayers } from "@/lib/apply-theme";
 import { getOpenAIClient } from "@/lib/openai-client";
 import {
@@ -96,7 +96,9 @@ export async function POST(request: Request) {
       ? stripStudioLayers(body.existingHtml)
       : undefined;
 
-    if (isRefinement && existingHtml && !isClearRefineRequest(prompt)) {
+    const refinePrompt = enrichRefinePrompt(prompt);
+
+    if (isRefinement && existingHtml && isChatOnlyRefineMessage(prompt)) {
       const reply = await generateChatReply(
         prompt,
         existingHtml,
@@ -128,7 +130,7 @@ export async function POST(request: Request) {
         {
           role: "user",
           content: buildUserMessage(
-            prompt,
+            refinePrompt,
             existingHtml,
             body.history,
             body.themePrompt,
